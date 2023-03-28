@@ -15,7 +15,10 @@ import { Cat, CatSchema } from './schemas/cat.schema';
 import { CatsService } from './cats/cats.service';
 
 @Module({
-  imports: [],
+  imports: [
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017/cats', {}),
+    MongooseModule.forFeature([{ name: Cat.name, schema: CatSchema }]),
+  ],
   controllers: [
     AppController,
     UsersController,
@@ -30,6 +33,7 @@ import { CatsService } from './cats/cats.service';
     BlogsService,
     PostsService,
     CommentsService,
+    CatsService,
   ],
 })
 export class AppModule {}
