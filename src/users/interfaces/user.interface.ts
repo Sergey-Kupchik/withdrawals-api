@@ -11,9 +11,6 @@ export interface IUser {
     email: string;
     hash: string;
     createdAt: string;
-    invalidRefreshTokens: string[];
-    resetPasswordHash?: string;
-    resetPasswordExpires?: Date;
   };
   emailConfirmation: IEmailConfirmation;
 }
@@ -28,8 +25,6 @@ export interface IEmailHashInfo {
   login: string;
   email: string;
   createdAt: string;
-  resetPasswordHash: string;
-  resetPasswordExpires: Date;
 }
 
 export interface IAllUsersOutput {

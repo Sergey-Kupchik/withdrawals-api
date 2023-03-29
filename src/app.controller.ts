@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Req } from '@nestjs/common';
 import { AppService } from './app.service';
-import { CatsService, CreateCatDto } from './cats/cats.service';
+import { CatsService } from './cats/cats.service';
+import { CreateCatDto } from './cats/cats.repository';
 
 @Controller()
 export class AppController {
@@ -11,11 +12,19 @@ export class AppController {
 
   @Get()
   getHello() {
+    return this.appService.getHello();
+  }
+  @Get('cats')
+  getCats() {
     return this.catsService.findAll();
   }
 
-  @Post()
-  postHello(@Req() request: CreateCatDto) {
-    return this.catsService.create(request);
+  @Post('cats')
+  postCats(@Body() createCatDto: CreateCatDto) {
+    return this.catsService.create(createCatDto);
+  }
+  @Put('cats/:id')
+  updateAge(@Param('id') id: string, @Body() body: { age: number }) {
+    return this.catsService.updateAge(id, body.age);
   }
 }

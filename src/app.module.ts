@@ -13,11 +13,16 @@ import { CommentsController } from './comments/comments.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Cat, CatSchema } from './schemas/cat.schema';
 import { CatsService } from './cats/cats.service';
+import { CatsRepository } from './cats/cats.repository';
+import { UsersRepository } from './users/users.repository';
+import { User, UserSchema } from './schemas/user.schema';
+import { UsersQueryRepository } from './users/users.query.repository';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://127.0.0.1:27017/cats', {}),
+    MongooseModule.forRoot('mongodb://localhost/nest'),
     MongooseModule.forFeature([{ name: Cat.name, schema: CatSchema }]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [
     AppController,
@@ -34,6 +39,9 @@ import { CatsService } from './cats/cats.service';
     PostsService,
     CommentsService,
     CatsService,
+    CatsRepository,
+    UsersRepository,
+    UsersQueryRepository,
   ],
 })
 export class AppModule {}

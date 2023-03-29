@@ -1,41 +1,57 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  IAllUsersOutput,
   IEmailHashInfo,
   IUser,
   IUserOutput,
 } from './interfaces/user.interface';
 import bcrypt from 'bcrypt';
-import { CreateUserDto, FilterParamsDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { User, UserModelType } from '../schemas/user.schema';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
   private users: IUser[] = [];
-  constructor() {
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    @InjectModel(User.name) private userModel: UserModelType,
+  ) {
     // private readonly likesService: LikesService, // private readonly refreshTokensRepo: RefreshTokensRepo, // private readonly tokensService: TokensService, // private readonly usersRepository: UsersRepo,
   }
-  async create(createUserDto: CreateUserDto): Promise<IUserOutput | null> {
-    const user: IUser = {
-      accountData: {
-        id: uuidv4(),
-        login: createUserDto.login,
-        email: createUserDto.email.toLowerCase(),
-        hash: await this._hashPassword(createUserDto.password),
-        createdAt: new Date().toISOString(),
-        invalidRefreshTokens: [],
-      },
-      emailConfirmation: {
-        confirmationCode: uuidv4(),
-        expirationDate: new Date('2023-09-25'),
-        isConfirmed: false,
-      },
+  async create(createUserDto: CreateUserDto): Promise<IUserOutput> {
+    const user = await this.userModel.createCustomUser(
+      createUserDto,
+      this.userModel,
+    );
+    const savedUser = await this.usersRepository.save(user);
+    return {
+      id: savedUser.accountData.id,
+      login: savedUser.accountData.login,
+      email: savedUser.accountData.login,
+      createdAt: savedUser.accountData.login,
     };
+    // const user: IUser = {
+    //   accountData: {
+    //     id: uuidv4(),
+    //     login: createUserDto.login,
+    //     email: createUserDto.email.toLowerCase(),
+    //     hash: await this._hashPassword(createUserDto.password),
+    //     createdAt: new Date().toISOString(),
+    //     invalidRefreshTokens: [],
+    //   },
+    //   emailConfirmation: {
+    //     confirmationCode: uuidv4(),
+    //     expirationDate: new Date('2023-09-25'),
+    //     isConfirmed: false,
+    //   },
+    // };
     // await this.usersRepository.createUser(newUser);
-    this.users.push(user);
-    // await this.likesService.createInstance(newUser.accountData.id)
-    const userOutput = await this.findById(user.accountData.id);
-    return userOutput;
+    // this.users.push(user);
+    // // await this.likesService.createInstance(newUser.accountData.id)
+    // const userOutput = await this.findById(user.accountData.id);
+    // return userOutput;
   }
 
   async _hashPassword(password: string): Promise<string> {
@@ -65,26 +81,26 @@ export class UsersService {
     hash: string,
   ): Promise<IEmailHashInfo | null> {
     // const result = await this.usersRepository.findUserByPasswordRecoveryHashCode(hash);
-    const result = this.users.find(
-      (u) => u.accountData.resetPasswordHash === hash,
-    );
-    if (
-      result &&
-      result.accountData.resetPasswordHash &&
-      result.accountData.resetPasswordExpires
-    ) {
-      const User: IEmailHashInfo = {
-        id: result.accountData.id,
-        login: result.accountData.login,
-        email: result.accountData.email,
-        createdAt: result.accountData.createdAt,
-        resetPasswordHash: result.accountData.resetPasswordHash,
-        resetPasswordExpires: result.accountData.resetPasswordExpires,
-      };
-      return User;
-    } else {
-      return null;
-    }
+    // const result = this.users.find(
+    //   (u) => u.accountData.resetPasswordHash === hash,
+    // );
+    // if (
+    //   result &&
+    //   result.accountData.resetPasswordHash &&
+    //   result.accountData.resetPasswordExpires
+    // ) {
+    //   const User: IEmailHashInfo = {
+    //     id: result.accountData.id,
+    //     login: result.accountData.login,
+    //     email: result.accountData.email,
+    //     createdAt: result.accountData.createdAt,
+    //     resetPasswordHash: result.accountData.resetPasswordHash,
+    //     resetPasswordExpires: result.accountData.resetPasswordExpires,
+    //   };
+    //   return User;
+    // } else {
+    return null;
+    // }
   }
   async findUserByEmail(email: string): Promise<IUser | null> {
     // const user = await this.usersRepository.findUserByEmail(email.toLowerCase(),);
@@ -138,21 +154,5 @@ export class UsersService {
     });
     this.users = updatedUsers as unknown as IUser[];
     return null;
-  }
-  async getAll(filterParamsDto: FilterParamsDto): Promise<IAllUsersOutput> {
-    // const user = await this.usersRepository.findUserByConfirmationCode(code);
-    const allUsers = {
-      pagesCount: Math.ceil(this.users.length / filterParamsDto.pageSize),
-      page: filterParamsDto.pageNumber,
-      pageSize: filterParamsDto.pageSize,
-      totalCount: this.users.length,
-      items: this.users.map((u) => ({
-        id: u.accountData.id,
-        login: u.accountData.login,
-        email: u.accountData.email,
-        createdAt: u.accountData.createdAt,
-      })),
-    };
-    return allUsers;
   }
 }
