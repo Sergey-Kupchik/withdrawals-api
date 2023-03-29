@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserModelType } from '../schemas/user.schema';
 import { FilterParamsDto, SortDirectionEnum } from './dto/create-user.dto';
-import { IAllUsersOutput } from './interfaces/user.interface';
+import { IAllUsersOutput, IUserOutput } from './interfaces/user.interface';
 
 @Injectable()
 export class UsersQueryRepository {
   constructor(@InjectModel(User.name) private userModel: UserModelType) {}
+
   async findAll(filterParamsDto: FilterParamsDto): Promise<IAllUsersOutput> {
     const searchLoginTerm = filterParamsDto.searchLoginTerm
       ? filterParamsDto.searchLoginTerm.toString()
@@ -46,6 +47,31 @@ export class UsersQueryRepository {
       })),
     };
     return UsersOutput;
+  }
+  async deleteById(id: string): Promise<boolean> {
+    const result = await this.userModel.deleteOne({ 'accountData.id': id });
+    return result.deletedCount === 1;
+  }
+
+  async deleteAll(): Promise<boolean> {
+    const resultDoc = await this.userModel.deleteMany();
+    return resultDoc.acknowledged;
+  }
+  async findById(id: string): Promise<IUserOutput | null> {
+    const result = await this.userModel
+      .findOne({ 'accountData.id': id }, '-_id  -__v')
+      .lean();
+    if (result) {
+      const User: IUserOutput = {
+        id: result.accountData.id,
+        login: result.accountData.login,
+        email: result.accountData.email,
+        createdAt: result.accountData.createdAt,
+      };
+      return User;
+    } else {
+      return null;
+    }
   }
 }
 

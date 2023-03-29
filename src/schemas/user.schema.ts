@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
-import { CatDocument } from './cat.schema';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,10 +9,10 @@ const emailConfirmationCodeLifeTimeHours = 5;
 
 @Schema()
 export class AccountData {
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   login: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   email: string;
 
   @Prop({ required: true })

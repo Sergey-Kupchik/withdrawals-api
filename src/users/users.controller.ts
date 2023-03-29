@@ -36,7 +36,7 @@ export class UsersController {
 
   @Delete(':id')
   async deleteUser(@Param('id') id: string, @Res() res: Response) {
-    const deleted = await this.userService.deleteUserById(id);
+    const deleted = await this.usersQueryRepository.deleteById(id);
     if (deleted) {
       return res.sendStatus(HttpStatus.NO_CONTENT);
     } else {

@@ -1,15 +1,14 @@
 import { Controller, Delete, HttpCode } from '@nestjs/common';
+import { UsersQueryRepository } from '../users/users.query.repository';
 
 @Controller(`testing`)
 export class TestingController {
-  constructor() {
-    //    private readonly  blogsService: BlogsService // private readonly  blogsQueryRepository: BlogsQueryRepository //   private readonly  postsService: CommentsService // private readonly  postsQueryRepository: PostsQueryRepo
-  }
+  constructor(private readonly usersQueryRepository: UsersQueryRepository) {}
 
   @Delete('all-data')
   @HttpCode(204)
   async deleteAll() {
-    // const deleted = await this.userService.deleteUserById(id);
+    await this.usersQueryRepository.deleteAll();
     return;
   }
 }

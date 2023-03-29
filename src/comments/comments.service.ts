@@ -10,6 +10,7 @@ import { UsersService } from '../users/users.service';
 import { LikeStatusEnum } from '../posts/interfaces/post.interface';
 import { PostsService } from '../posts/posts.service';
 import { FilterParamsDto } from '../users/dto/create-user.dto';
+import { UsersQueryRepository } from '../users/users.query.repository';
 
 @Injectable()
 export class CommentsService {
@@ -17,14 +18,14 @@ export class CommentsService {
 
   constructor(
     private readonly usersService: UsersService,
-    private readonly postsService: PostsService,
+    private readonly usersQueryRepository: UsersQueryRepository,
   ) {}
 
   async create(
     createCommentDto: CreateCommentDto,
     userId: string,
   ): Promise<IComment> {
-    const user = await this.usersService.findById(userId);
+    const user = await this.usersQueryRepository.findById(userId);
     const comment: IComment = {
       id: uuidv4(),
       content: createCommentDto.content,
