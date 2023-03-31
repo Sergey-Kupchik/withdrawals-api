@@ -1,49 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
 import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
 import { CreateBlogDto } from './dto/blod.dto';
 import { FilterParamsDto } from '../users/dto/create-user.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Blog, BlogModelType } from '../schemas/blog.schema';
+import { BlogRepository } from './blog.repository';
 
 @Injectable()
 export class BlogsService {
   private blogs: IBlog[] = [];
-  constructor() {
-    // private readonly likesService: LikesService, // private readonly refreshTokensRepo: RefreshTokensRepo, // private readonly tokensService: TokensService, // private readonly usersRepository: UsersRepo,
-  }
+  constructor(
+    @InjectModel(Blog.name) private blogModel: BlogModelType,
+    private readonly blogRepository: BlogRepository,
+  ) {}
   async create(createUserDto: CreateBlogDto): Promise<IBlog | null> {
-    const blog: IBlog = {
-      id: uuidv4(),
-      name: createUserDto.name,
-      websiteUrl: createUserDto.websiteUrl,
-      createdAt: new Date().toISOString(),
-      description: createUserDto.description,
-      isMembership: true,
+    const blog = await this.blogModel.createCustomBlog(
+      createUserDto,
+      this.blogModel,
+    );
+    const savedBlog = await this.blogRepository.save(blog);
+    return {
+      id: savedBlog._id,
+      name: savedBlog.name,
+      description: savedBlog.description,
+      websiteUrl: savedBlog.websiteUrl,
+      createdAt: savedBlog.createdAt,
+      isMembership: savedBlog.isMembership,
     };
-    // const resp = await this.blogsRepository.create(blog)
-    this.blogs.push(blog);
-    // const resp = await this.blogsRepository.createBlog(blog)
-    return await this.findById(blog.id);
   }
   async findById(id: string): Promise<IBlog | null> {
-    return this.blogs.find((b) => b.id === id);
+    return this.blogModel.findById(id);
   }
   async update(createUserDto: CreateBlogDto, id: string): Promise<boolean> {
-    // const result = await this.blogsRepository.updateBlog(createUserDto, id);
-    const blog4Update = this.blogs.find((b) => b.id === id);
-    if (!blog4Update) return false;
-    const updatedBlogs = this.blogs.map((b) => {
-      if (b.id === id) {
-        b.name = createUserDto.name ? createUserDto.name : b.name;
-        b.description = createUserDto.description
-          ? createUserDto.description
-          : b.description;
-        b.websiteUrl = createUserDto.websiteUrl
-          ? createUserDto.websiteUrl
-          : b.websiteUrl;
-      }
-      return b;
-    });
-    this.blogs = updatedBlogs as unknown as IBlog[];
+    const blog = await this.blogModel.findById(id);
+    if (!blog) return false;
+    await blog.updateBlog(createUserDto);
+    await this.blogRepository.save(blog);
     return true;
   }
   async deleteById(id: string): Promise<boolean> {
