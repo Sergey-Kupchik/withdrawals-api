@@ -4,14 +4,14 @@ import { CreateBlogDto } from './dto/blod.dto';
 import { FilterParamsDto } from '../users/dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Blog, BlogModelType } from '../schemas/blog.schema';
-import { BlogRepository } from './blog.repository';
+import { BlogsRepository } from './blogs.repository';
 
 @Injectable()
 export class BlogsService {
   private blogs: IBlog[] = [];
   constructor(
     @InjectModel(Blog.name) private blogModel: BlogModelType,
-    private readonly blogRepository: BlogRepository,
+    private readonly blogRepository: BlogsRepository,
   ) {}
   async create(createUserDto: CreateBlogDto): Promise<IBlog | null> {
     const blog = await this.blogModel.createCustomBlog(

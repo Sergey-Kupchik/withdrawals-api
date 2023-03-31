@@ -1,5 +1,4 @@
 import { ILikesInfo } from '../../posts/interfaces/post.interface';
-import { IBlog } from '../../blogs/interfaces/blog.interface';
 
 export interface IComment {
   id: string;

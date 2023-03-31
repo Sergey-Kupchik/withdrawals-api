@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Blog, BlogDocument, BlogModelType } from '../schemas/blog.schema';
 
 @Injectable()
-export class BlogRepository {
+export class BlogsRepository {
   constructor(@InjectModel(Blog.name) private blogModel: BlogModelType) {}
 
   async save(Blog: BlogDocument): Promise<Blog> {

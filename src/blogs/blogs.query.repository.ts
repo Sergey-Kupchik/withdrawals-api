@@ -9,7 +9,7 @@ import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
 import * as mongoose from 'mongoose';
 
 @Injectable()
-export class BlogQueryRepository {
+export class BlogsQueryRepository {
   constructor(@InjectModel(Blog.name) private blogModel: BlogModelType) {}
 
   async findAll(filterParamsDto: FilterParamsDto): Promise<IAllBlogsOutput> {

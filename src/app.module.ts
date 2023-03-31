@@ -14,15 +14,19 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersRepository } from './users/users.repository';
 import { User, UserSchema } from './schemas/user.schema';
 import { UsersQueryRepository } from './users/users.query.repository';
-import { BlogRepository } from './blogs/blog.repository';
+import { BlogsRepository } from './blogs/blogs.repository';
 import { Blog, BlogSchema } from './schemas/blog.schema';
-import { BlogQueryRepository } from './blogs/blog.query.repository';
+import { BlogsQueryRepository } from './blogs/blogs.query.repository';
+import { Comment, CommentSchema } from './schemas/comment.schema';
+import { CommentsRepository } from './comments/comments.repository';
+import { CommentsQueryRepository } from './comments/comments.query.repository';
 
 @Module({
   imports: [
     MongooseModule.forRoot('mongodb://localhost/nest'),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Blog.name, schema: BlogSchema }]),
+    MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
   ],
   controllers: [
     AppController,
@@ -40,8 +44,10 @@ import { BlogQueryRepository } from './blogs/blog.query.repository';
     CommentsService,
     UsersRepository,
     UsersQueryRepository,
-    BlogRepository,
-    BlogQueryRepository,
+    BlogsRepository,
+    BlogsQueryRepository,
+    CommentsRepository,
+    CommentsQueryRepository,
   ],
 })
 export class AppModule {}

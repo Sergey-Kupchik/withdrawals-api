@@ -15,13 +15,13 @@ import { BlogsService } from './blogs.service';
 import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
 import { CreateBlogDto } from './dto/blod.dto';
 import { Response } from 'express';
-import { BlogQueryRepository } from './blog.query.repository';
+import { BlogsQueryRepository } from './blogs.query.repository';
 
 @Controller(`blogs`)
 export class BlogsController {
   constructor(
     private readonly blogsService: BlogsService,
-    private readonly blogsQueryRepository: BlogQueryRepository,
+    private readonly blogsQueryRepository: BlogsQueryRepository,
   ) {}
 
   @Get()
