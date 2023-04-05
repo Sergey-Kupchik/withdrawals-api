@@ -22,7 +22,6 @@ export class UsersQueryRepository {
       })
       .count();
     const pagesCount: number = Math.ceil(totalCount / filterParamsDto.pageSize);
-    const nameByStr = `accountData.${filterParamsDto.sortBy}`;
     const sortDirectionParam =
       filterParamsDto.sortDirection === SortDirectionEnum.asc ? 1 : -1;
     const skipItems: number =
