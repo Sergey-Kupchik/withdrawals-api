@@ -30,6 +30,16 @@ export class BlogsController {
   ): Promise<IAllBlogsOutput> {
     return this.blogsQueryRepository.findAll(filterParamsDto);
   }
+  //
+  // @Get(':id/posts')
+  // async getPosts(@Param('id') id: string, @Res() res: Response) {
+  //   const blog = await this.blogsQueryRepository.findById(id);
+  //   if (blog) {
+  //     return res.send(blog);
+  //   } else {
+  //     return res.sendStatus(HttpStatus.NOT_FOUND);
+  //   }
+  // }
 
   @Post()
   async create(@Body() createBlogDto: CreateBlogDto): Promise<IBlog> {

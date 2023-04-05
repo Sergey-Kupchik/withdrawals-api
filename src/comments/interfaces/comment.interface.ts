@@ -1,4 +1,7 @@
-import { ILikesInfo } from '../../posts/interfaces/post.interface';
+import {
+  ILikesInfo,
+  LikeStatusEnum,
+} from '../../posts/interfaces/post.interface';
 
 export interface IComment {
   id: string;
@@ -12,11 +15,9 @@ export interface IComment {
 export interface IExtendedComment {
   id: string;
   content: string;
-  userId: string;
-  userLogin: string;
+  commentatorInfo: { userLogin: string; userId: string };
   createdAt: string;
-  postId: string;
-  extendedLikesInfo: ILikesInfo;
+  likesInfo: ILikesInfoNoNewestLikes;
 }
 
 export interface IAllCommentsOutput {
@@ -25,4 +26,10 @@ export interface IAllCommentsOutput {
   pageSize: number;
   totalCount: number;
   items: IExtendedComment[];
+}
+
+interface ILikesInfoNoNewestLikes {
+  likesCount: number;
+  dislikesCount: number;
+  myStatus: LikeStatusEnum;
 }

@@ -1,63 +1,84 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpStatus,
   Param,
   Post,
+  Put,
   Query,
   Res,
+  Delete,
 } from '@nestjs/common';
-import { CreatePostDto } from './dto/post.dto';
-import { PostsService } from './posts.service';
 import { Response } from 'express';
+import { CommentsQueryRepository } from 'src/comments/comments.query.repository';
 import { FilterParamsDto } from '../users/dto/create-user.dto';
+import { CreatePostDto } from './dto/post.dto';
 import { IAllPostsOutput } from './interfaces/post.interface';
-import { CommentsService } from '../comments/comments.service';
+import { PostsQueryRepository } from './posts.query.repository';
+import { PostsService } from './posts.service';
 
 @Controller(`posts`)
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
-    private readonly commentsService: CommentsService,
+    private readonly commentsQueryRepository: CommentsQueryRepository,
+    private readonly postsQueryRepository: PostsQueryRepository,
   ) {}
 
   @Get()
-  async getUsers(@Query() request: FilterParamsDto): Promise<IAllPostsOutput> {
-    return this.postsService.getAll(request);
+  async getPosts(
+    @Query() filterParamsDto: FilterParamsDto,
+  ): Promise<IAllPostsOutput> {
+    return this.postsQueryRepository.findAll(filterParamsDto);
   }
-
   @Post()
-  async create(@Body() request: CreatePostDto, @Res() res: Response) {
-    const post = await this.postsService.create(request);
+  async create(@Body() createPostDto: CreatePostDto, @Res() res: Response) {
+    const post = await this.postsService.create(createPostDto);
     return res.send(post);
-  }
-  @Get(':id')
-  async getById(@Param('id') id: string, @Res() res: Response) {
-    const post = await this.postsService.findById(id);
-    if (post) {
-      return res.send(post);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
-    }
   }
   @Post(':id/comments')
   async getComments(
     @Param('id') id: string,
-    @Query() request: FilterParamsDto,
+    @Query() filterParamsDto: FilterParamsDto,
     @Res() res: Response,
   ) {
-    const comments = await this.commentsService.findAllByPostId(request, id);
+    const comments = await this.commentsQueryRepository.findAllByPostId(
+      filterParamsDto,
+      id,
+    );
     if (comments) {
       return res.send(comments);
     } else {
       return res.sendStatus(HttpStatus.NOT_FOUND);
     }
   }
+  @Get(':id')
+  async getById(@Param('id') id: string, @Res() res: Response) {
+    const post = await this.postsQueryRepository.findById(id);
+    if (post) {
+      return res.send(post);
+    } else {
+      return res.sendStatus(HttpStatus.NOT_FOUND);
+    }
+  }
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() createPostDto: CreatePostDto,
+    @Res() res: Response,
+  ) {
+    const isUpdated = await this.postsService.update(createPostDto, id);
+    if (isUpdated) {
+      return res.sendStatus(HttpStatus.NO_CONTENT);
+    } else {
+      return res.sendStatus(HttpStatus.NOT_FOUND);
+    }
+  }
+
   @Delete(':id')
   async deleteUser(@Param('id') id: string, @Res() res: Response) {
-    const deleted = await this.postsService.deleteById(id);
+    const deleted = await this.postsQueryRepository.deleteById(id);
     if (deleted) {
       return res.sendStatus(HttpStatus.NO_CONTENT);
     } else {

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersController } from './users/users.controller';
@@ -20,13 +21,28 @@ import { BlogsQueryRepository } from './blogs/blogs.query.repository';
 import { Comment, CommentSchema } from './schemas/comment.schema';
 import { CommentsRepository } from './comments/comments.repository';
 import { CommentsQueryRepository } from './comments/comments.query.repository';
+import { PostsRepository } from './posts/posts.repository';
+import { Post, PostSchema } from './schemas/post.schema';
+import { PostsQueryRepository } from './posts/posts.query.repository';
 
+// const mongooseUrl = parseInt(process.env.MONGOOSE_URL, 10);
+// const dbName = 'second?retryWrites=true&w=majority';
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost/nest'),
+    // MongooseModule.forRoot('mongodb://localhost/nest'),
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGO_URL'),
+      }),
+      inject: [ConfigService],
+    }),
+    // MongooseModule.forRoot(`${mongooseUrl}/${dbName}`),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Blog.name, schema: BlogSchema }]),
     MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
+    MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
   ],
   controllers: [
     AppController,
@@ -48,6 +64,8 @@ import { CommentsQueryRepository } from './comments/comments.query.repository';
     BlogsQueryRepository,
     CommentsRepository,
     CommentsQueryRepository,
+    PostsRepository,
+    PostsQueryRepository,
   ],
 })
 export class AppModule {}

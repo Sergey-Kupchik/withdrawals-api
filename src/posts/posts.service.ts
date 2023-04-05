@@ -1,41 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import {
-  IAllPostsOutput,
-  IExtendedPost,
-  IPost,
-  LikeStatusEnum,
-} from './interfaces/post.interface';
+import { InjectModel } from '@nestjs/mongoose';
+import { BlogsQueryRepository } from '../blogs/blogs.query.repository';
+import { Post, PostModelType } from '../schemas/post.schema';
 import { CreatePostDto } from './dto/post.dto';
-import { BlogsService } from '../blogs/blogs.service';
-import { v4 as uuidv4 } from 'uuid';
-import { FilterParamsDto } from '../users/dto/create-user.dto';
-import { IBlog } from '../blogs/interfaces/blog.interface';
+import { IExtendedPost, LikeStatusEnum } from './interfaces/post.interface';
+import { PostsRepository } from './posts.repository';
 
 @Injectable()
 export class PostsService {
-  private posts: IPost[] = [];
-  constructor(private readonly blogsService: BlogsService) {}
+  constructor(
+    @InjectModel(Post.name) private postModel: PostModelType,
+    private readonly postsRepository: PostsRepository,
+    private readonly blogsQueryRepository: BlogsQueryRepository,
+  ) {}
   async create(createPostDto: CreatePostDto): Promise<IExtendedPost> {
-    const blog = await this.blogsService.findById(createPostDto.blogId);
-    const post: IPost = {
-      id: uuidv4(),
-      title: createPostDto.title,
-      shortDescription: createPostDto.shortDescription,
-      content: createPostDto.content,
-      blogId: createPostDto.blogId,
-      blogName: blog ? blog.name : 'No name',
-      createdAt: new Date().toISOString(),
-    };
-    // const result = await this.postsRepository.createPost(post);
-    this.posts.push(post);
-    const extendedPost: IExtendedPost = {
-      id: post.id,
-      title: post.title,
-      shortDescription: post.shortDescription,
-      content: post.content,
-      blogId: post.blogId,
-      blogName: post.blogName,
-      createdAt: post.createdAt,
+    const blog = await this.blogsQueryRepository.findById(createPostDto.blogId);
+    const post = await this.postModel.createCustomPost(
+      createPostDto,
+      blog.name,
+      this.postModel,
+    );
+    const savedComment = await this.postsRepository.save(post);
+    return {
+      id: savedComment._id,
+      title: savedComment.title,
+      shortDescription: savedComment.shortDescription,
+      content: savedComment.content,
+      blogId: savedComment.blogId,
+      blogName: savedComment.blogName,
+      createdAt: savedComment.createdAt,
       extendedLikesInfo: {
         likesCount: 0,
         dislikesCount: 0,
@@ -43,58 +36,56 @@ export class PostsService {
         newestLikes: [],
       },
     };
-    return extendedPost;
   }
-
-  async findById(id: string): Promise<IExtendedPost | null> {
-    const post = await this.posts.find((p) => p.id === id);
-    // // const likesCount = await this.likesQueryRepository.getLikesCount4Post(postId)
-    // // const newestLikest = await this.likesQueryRepository.getNewestLikes4Post(postId)
-    // // const userLikestStatus = await this.likesQueryRepository.getPostLikeStatus4User(userId, postId)
-    //  const likesCount = await this.likesQueryRepository.getLikesCount4Post(postId)
-
-    return;
-  }
-
-  async getAll(filterParamsDto: FilterParamsDto): Promise<IAllPostsOutput> {
-    const posts = {
-      page: filterParamsDto.pageNumber ? filterParamsDto.pageNumber : 1,
-      pageSize: filterParamsDto.pageSize ? filterParamsDto.pageSize : 10,
-      pagesCount: Math.ceil(
-        this.posts.length /
-          (filterParamsDto.pageSize ? filterParamsDto.pageSize : 10),
-      ),
-      totalCount: this.posts.length,
-      items: this.posts.map((post) => ({
-        id: post.id,
-        title: post.title,
-        shortDescription: post.shortDescription,
-        content: post.content,
-        blogId: post.blogId,
-        blogName: post.blogName,
-        createdAt: post.createdAt,
-        extendedLikesInfo: {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: LikeStatusEnum.None,
-          newestLikes: [],
-        },
-      })),
-    };
-    return posts;
-  }
-  async deleteById(id: string): Promise<boolean> {
-    const post = this.posts.find((b) => b.id === id);
+  async update(createPostDto: CreatePostDto, id: string): Promise<boolean> {
+    const post = await this.postModel.findOne({ _id: id });
     if (!post) return false;
-    const updatedPosts = this.posts.filter((b) => b.id !== id);
-    this.posts = updatedPosts as unknown as IPost[];
+    await post.updatePost(createPostDto);
+    await this.postsRepository.save(post);
     return true;
   }
-  async deleteAll(id: string) {
-    this.posts = [];
-    return;
-  }
 }
+
+//
+// async getAll(filterParamsDto: FilterParamsDto): Promise<IAllPostsOutput> {
+//   const posts = {
+//     page: filterParamsDto.pageNumber ? filterParamsDto.pageNumber : 1,
+//     pageSize: filterParamsDto.pageSize ? filterParamsDto.pageSize : 10,
+//     pagesCount: Math.ceil(
+//       this.posts.length /
+//         (filterParamsDto.pageSize ? filterParamsDto.pageSize : 10),
+//     ),
+//     totalCount: this.posts.length,
+//     items: this.posts.map((post) => ({
+//       id: post.id,
+//       title: post.title,
+//       shortDescription: post.shortDescription,
+//       content: post.content,
+//       blogId: post.blogId,
+//       blogName: post.blogName,
+//       createdAt: post.createdAt,
+//       extendedLikesInfo: {
+//         likesCount: 0,
+//         dislikesCount: 0,
+//         myStatus: LikeStatusEnum.None,
+//         newestLikes: [],
+//       },
+//     })),
+//   };
+//   return posts;
+// }
+//   async deleteById(id: string): Promise<boolean> {
+//     const post = this.posts.find((b) => b.id === id);
+//     if (!post) return false;
+//     const updatedPosts = this.posts.filter((b) => b.id !== id);
+//     this.posts = updatedPosts as unknown as IPost[];
+//     return true;
+//   }
+//   async deleteAll(id: string) {
+//     this.posts = [];
+//     return;
+//   }
+// }
 // const blog: IBlog = {
 //   id: uuidv4(),
 //   name: createUserDto.name,
