@@ -6,7 +6,6 @@ import {
   SortDirectionEnum,
 } from '../users/dto/create-user.dto';
 import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
-import * as mongoose from 'mongoose';
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -23,7 +22,6 @@ export class BlogsQueryRepository {
     const filter = filterParam(searchLoginTerm, searchEmailTerm);
     const totalCount: number = await this.blogModel.find(filter).count();
     const pagesCount: number = Math.ceil(totalCount / pageSize);
-    const nameByStr = `accountData.${filterParamsDto.sortBy}`;
     const sortDirectionParam =
       filterParamsDto.sortDirection === SortDirectionEnum.asc ? 1 : -1;
     const skipItems: number = (filterParamsDto.pageNumber - 1) * pageSize;
