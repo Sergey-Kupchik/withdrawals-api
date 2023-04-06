@@ -1,6 +1,11 @@
-import { Controller, Get, HttpStatus, Param, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+} from '@nestjs/common';
 
-import { Response } from 'express';
 import { CommentsService } from './comments.service';
 
 @Controller(`comments`)
@@ -8,12 +13,9 @@ export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @Get(':id')
-  async getById(@Param('id') id: string, @Res() res: Response) {
+  async getById(@Param('id') id: string) {
     const comment = await this.commentsService.findById(id);
-    if (comment) {
-      return res.send(comment);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
-    }
+    if (!comment) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    return comment;
   }
 }

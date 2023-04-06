@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { FilterParamsDto, PaginationParams } from 'src/utils/paginationParams';
 import { LikeStatusEnum } from '../posts/interfaces/post.interface';
 import { Comment, CommentModelType } from '../schemas/comment.schema';
-import {
-  FilterParamsDto,
-  SortDirectionEnum,
-} from '../users/dto/create-user.dto';
 import { IAllCommentsOutput } from './interfaces/comment.interface';
 
 @Injectable()
@@ -20,26 +17,22 @@ export class CommentsQueryRepository {
   }
 
   async findAllByPostId(
-    filterParamsDto: FilterParamsDto,
+    filterDto: FilterParamsDto,
     postId: string,
   ): Promise<IAllCommentsOutput | null> {
-    const pageSize = filterParamsDto.pageSize ? filterParamsDto.pageSize : 10;
     const totalCount: number = await this.commentModel
       .find({ postId: postId })
       .count();
-    const pagesCount: number = Math.ceil(totalCount / pageSize);
-    const sortDirectionParam =
-      filterParamsDto.sortDirection === SortDirectionEnum.asc ? 1 : -1;
-    const skipItems: number = (filterParamsDto.pageNumber - 1) * pageSize;
+    const params = new PaginationParams(filterDto);
     const items = await this.commentModel
       .find({ postId: postId })
-      .sort({ nameByStr: sortDirectionParam })
-      .skip(skipItems)
-      .limit(pageSize);
+      .sort({ nameByStr: params.sortDirectionNumber })
+      .skip(params.skipItems)
+      .limit(params.pageSize);
     const postsOutput: IAllCommentsOutput = {
-      pagesCount,
-      page: filterParamsDto.pageNumber,
-      pageSize: filterParamsDto.pageSize,
+      pagesCount: params.getPageCount(totalCount),
+      page: params.pageNumber,
+      pageSize: params.pageSize,
       totalCount,
       items: items.map((p) => ({
         id: p._id,

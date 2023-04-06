@@ -3,17 +3,18 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpException,
   HttpStatus,
   Param,
   Post,
   Query,
-  Res,
 } from '@nestjs/common';
-import { CreateUserDto, FilterParamsDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 import { IAllUsersOutput, IUserOutput } from './interfaces/user.interface';
-import { Response } from 'express';
 import { UsersQueryRepository } from './users.query.repository';
+import { FilterParamsDto } from 'src/utils/paginationParams';
 
 @Controller(`users`)
 export class UsersController {
@@ -34,13 +35,11 @@ export class UsersController {
     return this.userService.create(createUserDto);
   }
 
+  @HttpCode(204)
   @Delete(':id')
-  async deleteUser(@Param('id') id: string, @Res() res: Response) {
+  async deleteUser(@Param('id') id: string) {
     const deleted = await this.usersQueryRepository.deleteById(id);
-    if (deleted) {
-      return res.sendStatus(HttpStatus.NO_CONTENT);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
-    }
+    if (!deleted) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    return;
   }
 }

@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import {
-  FilterParamsDto,
-  SortDirectionEnum,
-} from '../users/dto/create-user.dto';
+import { FilterParamsDto, PaginationParams } from 'src/utils/paginationParams';
 import { Post, PostModelType } from '../schemas/post.schema';
+
 import {
   IAllPostsOutput,
   IExtendedPost,
@@ -15,30 +13,19 @@ import {
 export class PostsQueryRepository {
   constructor(@InjectModel(Post.name) private postModel: PostModelType) {}
 
-  async findAll(filterParamsDto: FilterParamsDto): Promise<IAllPostsOutput> {
-    const searchLoginTerm = filterParamsDto.searchLoginTerm
-      ? filterParamsDto.searchLoginTerm.toString()
-      : null;
-    const searchEmailTerm = filterParamsDto.searchEmailTerm
-      ? filterParamsDto.searchEmailTerm.toString().toLowerCase()
-      : null;
-    const pageSize = filterParamsDto.pageSize ? filterParamsDto.pageSize : 10;
-    const filter = filterParam(searchLoginTerm, searchEmailTerm);
-    const totalCount: number = await this.postModel.find(filter).count();
-    const pagesCount: number = Math.ceil(totalCount / pageSize);
-    const sortDirectionParam =
-      filterParamsDto.sortDirection === SortDirectionEnum.asc ? 1 : -1;
-    const skipItems: number = (filterParamsDto.pageNumber - 1) * pageSize;
+  async findAll(filterDto: FilterParamsDto): Promise<IAllPostsOutput> {
+    const params = new PaginationParams(filterDto);
+    const totalCount: number = await this.postModel.find().count();
     const items = await this.postModel
-      .find(filter)
-      .sort({ nameByStr: sortDirectionParam })
-      .skip(skipItems)
-      .limit(pageSize);
+      .find()
+      .sort({ nameByStr: params.sortDirectionNumber })
+      .skip(params.skipItems)
+      .limit(params.pageSize);
     // to-do make a real call for getting real data about likes
     const postOutput: IAllPostsOutput = {
-      pagesCount,
-      page: filterParamsDto.pageNumber,
-      pageSize: filterParamsDto.pageSize,
+      pagesCount: params.getPageCount(totalCount),
+      page: params.pageNumber,
+      pageSize: params.pageSize,
       totalCount,
       items: items.map((p) => ({
         id: p._id,
@@ -92,26 +79,41 @@ export class PostsQueryRepository {
       return null;
     }
   }
-}
 
-function filterParam(
-  searchLoginTerm: string | null,
-  searchEmailTerm: string | null,
-) {
-  let param;
-  if (searchLoginTerm && searchEmailTerm) {
-    param = {
-      $or: [
-        { 'accountData.login': { $regex: searchLoginTerm, $options: 'i' } },
-        { 'accountData.email': { $regex: searchEmailTerm, $options: 'i' } },
-      ],
+  async findByBlogId(
+    blogId: string,
+    filterDto: FilterParamsDto,
+  ): Promise<IAllPostsOutput | null> {
+    const params = new PaginationParams(filterDto);
+    const filter = { blogId: blogId };
+    const totalCount: number = await this.postModel.find(filter).count();
+    const items = await this.postModel
+      .find(filter)
+      .sort({ nameByStr: params.sortDirectionNumber })
+      .skip(params.skipItems)
+      .limit(params.pageSize);
+
+    const postOutput: IAllPostsOutput = {
+      pagesCount: params.getPageCount(totalCount),
+      page: params.pageNumber,
+      pageSize: params.pageSize,
+      totalCount,
+      items: items.map((p) => ({
+        id: p._id,
+        title: p.title,
+        shortDescription: p.shortDescription,
+        content: p.content,
+        blogId: p.blogId,
+        blogName: p.blogName,
+        createdAt: p.createdAt,
+        extendedLikesInfo: {
+          likesCount: 0,
+          dislikesCount: 0,
+          myStatus: LikeStatusEnum.None,
+          newestLikes: [],
+        },
+      })),
     };
-  } else if (searchLoginTerm && !searchEmailTerm) {
-    param = { 'accountData.login': { $regex: searchLoginTerm, $options: 'i' } };
-  } else if (!searchLoginTerm && searchEmailTerm) {
-    param = { 'accountData.email': { $regex: searchEmailTerm, $options: 'i' } };
-  } else {
-    param = {};
+    return postOutput;
   }
-  return param;
 }

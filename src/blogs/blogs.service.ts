@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
-import { CreateBlogDto } from './dto/blod.dto';
-import { FilterParamsDto } from '../users/dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Blog, BlogModelType } from '../schemas/blog.schema';
 import { BlogsRepository } from './blogs.repository';
+import { CreateBlogDto } from './dto/blod.dto';
+import { IBlog } from './interfaces/blog.interface';
 
 @Injectable()
 export class BlogsService {
-  private blogs: IBlog[] = [];
   constructor(
     @InjectModel(Blog.name) private blogModel: BlogModelType,
     private readonly blogRepository: BlogsRepository,
@@ -37,38 +35,5 @@ export class BlogsService {
     await blog.updateBlog(createUserDto);
     await this.blogRepository.save(blog);
     return true;
-  }
-  async deleteById(id: string): Promise<boolean> {
-    // const result = await this.blogsRepository.deleteBlogById(id)
-    // return result;
-    const blog = this.blogs.find((b) => b.id === id);
-    if (!blog) return false;
-    const updatedBlogs = this.blogs.filter((b) => b.id !== id);
-    this.blogs = updatedBlogs as unknown as IBlog[];
-    return true;
-  }
-  async deleteAll(): Promise<boolean> {
-    this.blogs = [];
-    return true;
-  }
-  async getAll(filterParamsDto: FilterParamsDto): Promise<IAllBlogsOutput> {
-    const blogs = {
-      page: filterParamsDto.pageNumber ? filterParamsDto.pageNumber : 1,
-      pageSize: filterParamsDto.pageSize ? filterParamsDto.pageSize : 10,
-      pagesCount: Math.ceil(
-        this.blogs.length /
-          (filterParamsDto.pageSize ? filterParamsDto.pageSize : 10),
-      ),
-      totalCount: this.blogs.length,
-      items: this.blogs.map((b) => ({
-        id: b.id,
-        name: b.name,
-        websiteUrl: b.websiteUrl,
-        createdAt: b.createdAt,
-        description: b.description,
-        isMembership: b.isMembership,
-      })),
-    };
-    return blogs;
   }
 }

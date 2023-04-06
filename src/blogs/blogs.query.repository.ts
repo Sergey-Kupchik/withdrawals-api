@@ -1,39 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { FilterParamsDto, PaginationParams } from 'src/utils/paginationParams';
 import { Blog, BlogModelType } from '../schemas/blog.schema';
-import {
-  FilterParamsDto,
-  SortDirectionEnum,
-} from '../users/dto/create-user.dto';
 import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
 
 @Injectable()
 export class BlogsQueryRepository {
   constructor(@InjectModel(Blog.name) private blogModel: BlogModelType) {}
 
-  async findAll(filterParamsDto: FilterParamsDto): Promise<IAllBlogsOutput> {
-    const searchLoginTerm = filterParamsDto.searchLoginTerm
-      ? filterParamsDto.searchLoginTerm.toString()
-      : null;
-    const searchEmailTerm = filterParamsDto.searchEmailTerm
-      ? filterParamsDto.searchEmailTerm.toString().toLowerCase()
-      : null;
-    const pageSize = filterParamsDto.pageSize ? filterParamsDto.pageSize : 10;
-    const filter = filterParam(searchLoginTerm, searchEmailTerm);
-    const totalCount: number = await this.blogModel.find(filter).count();
-    const pagesCount: number = Math.ceil(totalCount / pageSize);
-    const sortDirectionParam =
-      filterParamsDto.sortDirection === SortDirectionEnum.asc ? 1 : -1;
-    const skipItems: number = (filterParamsDto.pageNumber - 1) * pageSize;
+  async findAll(filterDto: FilterParamsDto): Promise<IAllBlogsOutput> {
+    const params = new PaginationParams(filterDto);
+    const totalCount: number = await this.blogModel.find().count();
     const items = await this.blogModel
-      .find(filter)
-      .sort({ nameByStr: sortDirectionParam })
-      .skip(skipItems)
-      .limit(pageSize);
+      .find()
+      .sort({ nameByStr: params.sortDirectionNumber })
+      .skip(params.skipItems)
+      .limit(params.pageSize);
     const BlogsOutput: IAllBlogsOutput = {
-      pagesCount,
-      page: filterParamsDto.pageNumber,
-      pageSize: filterParamsDto.pageSize,
+      pagesCount: params.getPageCount(totalCount),
+      page: params.pageNumber,
+      pageSize: params.pageSize,
       totalCount,
       items: items.map((b) => ({
         id: b._id,
@@ -73,26 +59,4 @@ export class BlogsQueryRepository {
       return null;
     }
   }
-}
-
-function filterParam(
-  searchLoginTerm: string | null,
-  searchEmailTerm: string | null,
-) {
-  let param;
-  if (searchLoginTerm && searchEmailTerm) {
-    param = {
-      $or: [
-        { 'accountData.login': { $regex: searchLoginTerm, $options: 'i' } },
-        { 'accountData.email': { $regex: searchEmailTerm, $options: 'i' } },
-      ],
-    };
-  } else if (searchLoginTerm && !searchEmailTerm) {
-    param = { 'accountData.login': { $regex: searchLoginTerm, $options: 'i' } };
-  } else if (!searchLoginTerm && searchEmailTerm) {
-    param = { 'accountData.email': { $regex: searchEmailTerm, $options: 'i' } };
-  } else {
-    param = {};
-  }
-  return param;
 }

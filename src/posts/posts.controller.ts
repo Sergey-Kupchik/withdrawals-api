@@ -7,12 +7,12 @@ import {
   Post,
   Put,
   Query,
-  Res,
   Delete,
+  HttpException,
+  HttpCode,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { CommentsQueryRepository } from 'src/comments/comments.query.repository';
-import { FilterParamsDto } from '../users/dto/create-user.dto';
+import { FilterParamsDto } from 'src/utils/paginationParams';
 import { CreatePostDto } from './dto/post.dto';
 import { IAllPostsOutput } from './interfaces/post.interface';
 import { PostsQueryRepository } from './posts.query.repository';
@@ -33,56 +33,41 @@ export class PostsController {
     return this.postsQueryRepository.findAll(filterParamsDto);
   }
   @Post()
-  async create(@Body() createPostDto: CreatePostDto, @Res() res: Response) {
-    const post = await this.postsService.create(createPostDto);
-    return res.send(post);
+  async create(@Body() createPostDto: CreatePostDto) {
+    return await this.postsService.create(createPostDto);
   }
   @Post(':id/comments')
   async getComments(
     @Param('id') id: string,
     @Query() filterParamsDto: FilterParamsDto,
-    @Res() res: Response,
   ) {
     const comments = await this.commentsQueryRepository.findAllByPostId(
       filterParamsDto,
       id,
     );
-    if (comments) {
-      return res.send(comments);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
-    }
+    if (!comments) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    return comments;
   }
   @Get(':id')
-  async getById(@Param('id') id: string, @Res() res: Response) {
+  async getById(@Param('id') id: string) {
     const post = await this.postsQueryRepository.findById(id);
-    if (post) {
-      return res.send(post);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
-    }
-  }
-  @Put(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() createPostDto: CreatePostDto,
-    @Res() res: Response,
-  ) {
-    const isUpdated = await this.postsService.update(createPostDto, id);
-    if (isUpdated) {
-      return res.sendStatus(HttpStatus.NO_CONTENT);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
-    }
+    if (!post) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    return post;
   }
 
+  @HttpCode(204)
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() createPostDto: CreatePostDto) {
+    const isUpdated = await this.postsService.update(createPostDto, id);
+    if (!isUpdated) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    return;
+  }
+
+  @HttpCode(204)
   @Delete(':id')
-  async deleteUser(@Param('id') id: string, @Res() res: Response) {
+  async deleteUser(@Param('id') id: string) {
     const deleted = await this.postsQueryRepository.deleteById(id);
-    if (deleted) {
-      return res.sendStatus(HttpStatus.NO_CONTENT);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
-    }
+    if (!deleted) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    return;
   }
 }

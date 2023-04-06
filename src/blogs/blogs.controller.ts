@@ -3,25 +3,30 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpException,
   HttpStatus,
   Param,
   Post,
   Put,
   Query,
-  Res,
 } from '@nestjs/common';
-import { FilterParamsDto } from '../users/dto/create-user.dto';
-import { BlogsService } from './blogs.service';
-import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
-import { CreateBlogDto } from './dto/blod.dto';
-import { Response } from 'express';
+import { IExtendedPost } from 'src/posts/interfaces/post.interface';
+import { PostsQueryRepository } from 'src/posts/posts.query.repository';
+import { PostsService } from 'src/posts/posts.service';
+import { FilterParamsDto } from 'src/utils/paginationParams';
 import { BlogsQueryRepository } from './blogs.query.repository';
+import { BlogsService } from './blogs.service';
+import { CreateBlogDto, CreatePostNoBlogIdDto } from './dto/blod.dto';
+import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
 
 @Controller(`blogs`)
 export class BlogsController {
   constructor(
     private readonly blogsService: BlogsService,
+    private readonly postsService: PostsService,
     private readonly blogsQueryRepository: BlogsQueryRepository,
+    private readonly postsQueryRepository: PostsQueryRepository,
   ) {}
 
   @Get()
@@ -30,52 +35,52 @@ export class BlogsController {
   ): Promise<IAllBlogsOutput> {
     return this.blogsQueryRepository.findAll(filterParamsDto);
   }
-  //
-  // @Get(':id/posts')
-  // async getPosts(@Param('id') id: string, @Res() res: Response) {
-  //   const blog = await this.blogsQueryRepository.findById(id);
-  //   if (blog) {
-  //     return res.send(blog);
-  //   } else {
-  //     return res.sendStatus(HttpStatus.NOT_FOUND);
-  //   }
-  // }
+
+  @Get(':blogId/posts')
+  async getPosts(
+    @Param('blogId') blogId: string,
+    @Query() filterParamsDto: FilterParamsDto,
+  ) {
+    const blog = await this.blogsQueryRepository.findById(blogId);
+    if (!blog) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    return await this.postsQueryRepository.findByBlogId(
+      blogId,
+      filterParamsDto,
+    );
+  }
 
   @Post()
   async create(@Body() createBlogDto: CreateBlogDto): Promise<IBlog> {
     return this.blogsService.create(createBlogDto);
   }
+
+  @Post(':blogId/posts')
+  async createPost(
+    @Param('blogId') blogId: string,
+    @Body() createPostNoBlogIdDto: CreatePostNoBlogIdDto,
+  ): Promise<IExtendedPost> {
+    return this.postsService.create({ ...createPostNoBlogIdDto, blogId });
+  }
   @Get(':id')
-  async getById(@Param('id') id: string, @Res() res: Response) {
+  async getById(@Param('id') id: string) {
     const blog = await this.blogsQueryRepository.findById(id);
-    if (blog) {
-      return res.send(blog);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
-    }
+    if (!blog) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    return blog;
   }
 
+  @HttpCode(204)
   @Put(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() createBlogDto: CreateBlogDto,
-    @Res() res: Response,
-  ) {
+  async update(@Param('id') id: string, @Body() createBlogDto: CreateBlogDto) {
     const isUpdated = await this.blogsService.update(createBlogDto, id);
-    if (isUpdated) {
-      return res.sendStatus(HttpStatus.NO_CONTENT);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
-    }
+    if (!isUpdated) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    return;
   }
 
+  @HttpCode(204)
   @Delete(':id')
-  async deleteUser(@Param('id') id: string, @Res() res: Response) {
+  async deleteUser(@Param('id') id: string) {
     const deleted = await this.blogsQueryRepository.deleteById(id);
-    if (deleted) {
-      return res.sendStatus(HttpStatus.NO_CONTENT);
-    } else {
-      return res.sendStatus(HttpStatus.NOT_FOUND);
-    }
+    if (!deleted) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    return;
   }
 }
