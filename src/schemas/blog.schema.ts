@@ -30,7 +30,7 @@ export class Blog {
       description: createBlogDto.description,
       websiteUrl: createBlogDto.websiteUrl,
       createdAt: new Date().toISOString(),
-      isMembership: true,
+      isMembership: false,
     };
     return new Model(blogDto);
   }

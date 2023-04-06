@@ -7,7 +7,7 @@ import {
 import { Post, PostModelType } from '../schemas/post.schema';
 import {
   IAllPostsOutput,
-  IPost,
+  IExtendedPost,
   LikeStatusEnum,
 } from './interfaces/post.interface';
 
@@ -69,10 +69,10 @@ export class PostsQueryRepository {
     const resultDoc = await this.postModel.deleteMany();
     return resultDoc.acknowledged;
   }
-  async findById(id: string): Promise<IPost | null> {
+  async findById(id: string): Promise<IExtendedPost | null> {
     const result = await this.postModel.findOne({ _id: id }, '  -__v').lean();
     if (result) {
-      const post: IPost = {
+      const post: IExtendedPost = {
         id: result._id,
         title: result.title,
         shortDescription: result.shortDescription,
@@ -80,6 +80,12 @@ export class PostsQueryRepository {
         blogId: result.blogId,
         blogName: result.blogName,
         createdAt: result.createdAt,
+        extendedLikesInfo: {
+          likesCount: 0,
+          dislikesCount: 0,
+          myStatus: LikeStatusEnum.None,
+          newestLikes: [],
+        },
       };
       return post;
     } else {

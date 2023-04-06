@@ -25,11 +25,8 @@ import { PostsRepository } from './posts/posts.repository';
 import { Post, PostSchema } from './schemas/post.schema';
 import { PostsQueryRepository } from './posts/posts.query.repository';
 
-// const mongooseUrl = parseInt(process.env.MONGOOSE_URL, 10);
-// const dbName = 'second?retryWrites=true&w=majority';
 @Module({
   imports: [
-    // MongooseModule.forRoot('mongodb://localhost/nest'),
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -38,7 +35,6 @@ import { PostsQueryRepository } from './posts/posts.query.repository';
       }),
       inject: [ConfigService],
     }),
-    // MongooseModule.forRoot(`${mongooseUrl}/${dbName}`),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Blog.name, schema: BlogSchema }]),
     MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
