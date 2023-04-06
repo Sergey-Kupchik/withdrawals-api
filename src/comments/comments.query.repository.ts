@@ -26,7 +26,7 @@ export class CommentsQueryRepository {
     const params = new PaginationParams(filterDto);
     const items = await this.commentModel
       .find({ postId: postId })
-      .sort({ nameByStr: params.sortDirectionNumber })
+      .sort({ [params.sortBy]: params.sortDirectionNumber })
       .skip(params.skipItems)
       .limit(params.pageSize);
     const postsOutput: IAllCommentsOutput = {

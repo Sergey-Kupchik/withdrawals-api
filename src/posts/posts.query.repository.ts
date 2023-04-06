@@ -18,7 +18,7 @@ export class PostsQueryRepository {
     const totalCount: number = await this.postModel.find().count();
     const items = await this.postModel
       .find()
-      .sort({ nameByStr: params.sortDirectionNumber })
+      .sort({ [params.sortBy]: params.sortDirectionNumber })
       .skip(params.skipItems)
       .limit(params.pageSize);
     // to-do make a real call for getting real data about likes
@@ -89,7 +89,7 @@ export class PostsQueryRepository {
     const totalCount: number = await this.postModel.find(filter).count();
     const items = await this.postModel
       .find(filter)
-      .sort({ nameByStr: params.sortDirectionNumber })
+      .sort({ [params.sortBy]: params.sortDirectionNumber })
       .skip(params.skipItems)
       .limit(params.pageSize);
 

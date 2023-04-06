@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { FilterParamsDto, PaginationParams } from 'src/utils/paginationParams';
 import { Blog, BlogModelType } from '../schemas/blog.schema';
 import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -13,7 +14,7 @@ export class BlogsQueryRepository {
     const totalCount: number = await this.blogModel.find().count();
     const items = await this.blogModel
       .find()
-      .sort({ nameByStr: params.sortDirectionNumber })
+      .sort({ [params.sortBy]: params.sortDirectionNumber })
       .skip(params.skipItems)
       .limit(params.pageSize);
     const BlogsOutput: IAllBlogsOutput = {
@@ -44,6 +45,8 @@ export class BlogsQueryRepository {
     return resultDoc.acknowledged;
   }
   async findById(id: string): Promise<IBlog | null> {
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+    if (!isValid) return null;
     const result = await this.blogModel.findOne({ _id: id }, '  -__v').lean();
     if (result) {
       const blog: IBlog = {

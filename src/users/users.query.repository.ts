@@ -18,7 +18,7 @@ export class UsersQueryRepository {
           projection: { _id: 0, hash: 0 },
         },
       )
-      .sort({ nameByStr: params.sortDirectionNumber })
+      .sort({ [params.sortBy]: params.sortDirectionNumber })
       .skip(params.skipItems)
       .limit(params.pageSize);
     const UsersOutput: IAllUsersOutput = {
