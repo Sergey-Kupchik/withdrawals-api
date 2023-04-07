@@ -11,9 +11,12 @@ export class BlogsQueryRepository {
 
   async findAll(filterDto: FilterParamsDto): Promise<IAllBlogsOutput> {
     const params = new PaginationParams(filterDto);
-    const totalCount: number = await this.blogModel.find().count();
+    const filterParam = params.searchNameTerm
+      ? { name: { $regex: params.searchNameTerm, $options: 'i' } }
+      : {};
+    const totalCount: number = await this.blogModel.find(filterParam).count();
     const items = await this.blogModel
-      .find()
+      .find(filterParam)
       .sort({ [params.sortBy]: params.sortDirectionNumber })
       .skip(params.skipItems)
       .limit(params.pageSize);

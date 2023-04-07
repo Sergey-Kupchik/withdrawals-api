@@ -5,6 +5,7 @@ export class FilterParamsDto {
   pageSize: number;
   searchLoginTerm: string;
   searchEmailTerm: string;
+  searchNameTerm: string;
 }
 
 export class PaginationParams {
@@ -14,6 +15,7 @@ export class PaginationParams {
   pageSize: number;
   searchLoginTerm: string;
   searchEmailTerm: string;
+  searchNameTerm: string;
   skipItems: number;
   sortDirectionNumber: 1 | -1;
   constructor(private queryParams: FilterParamsDto) {
@@ -29,6 +31,9 @@ export class PaginationParams {
       : null;
     this.searchEmailTerm = queryParams.searchEmailTerm
       ? queryParams.searchEmailTerm
+      : null;
+    this.searchNameTerm = queryParams.searchNameTerm
+      ? queryParams.searchNameTerm
       : null;
     this.skipItems = (this.pageNumber - 1) * this.pageSize;
     this.sortDirectionNumber =

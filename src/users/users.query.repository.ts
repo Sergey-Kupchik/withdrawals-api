@@ -10,6 +10,7 @@ export class UsersQueryRepository {
 
   async findAll(filterParamsDto: FilterParamsDto): Promise<IAllUsersOutput> {
     const params = new PaginationParams(filterParamsDto);
+    const nameByStr = `accountData.${params.sortBy}`;
     const totalCount: number = await this.userModel.find().count();
     const items = await this.userModel
       .find(
@@ -18,7 +19,7 @@ export class UsersQueryRepository {
           projection: { _id: 0, hash: 0 },
         },
       )
-      .sort({ [params.sortBy]: params.sortDirectionNumber })
+      .sort({ [nameByStr]: params.sortDirectionNumber })
       .skip(params.skipItems)
       .limit(params.pageSize);
     const UsersOutput: IAllUsersOutput = {
