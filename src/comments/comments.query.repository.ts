@@ -31,8 +31,8 @@ export class CommentsQueryRepository {
       .limit(params.pageSize);
     const postsOutput: IAllCommentsOutput = {
       pagesCount: params.getPageCount(totalCount),
-      page: params.pageNumber,
-      pageSize: params.pageSize,
+      page: +params.pageNumber,
+      pageSize: +params.pageSize,
       totalCount,
       items: items.map((p) => ({
         id: p._id,

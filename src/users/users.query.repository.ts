@@ -23,8 +23,8 @@ export class UsersQueryRepository {
       .limit(params.pageSize);
     const UsersOutput: IAllUsersOutput = {
       pagesCount: params.getPageCount(totalCount),
-      page: params.pageNumber,
-      pageSize: params.pageSize,
+      page: +params.pageNumber,
+      pageSize: +params.pageSize,
       totalCount,
       items: items.map((u) => ({
         id: u.accountData.id,

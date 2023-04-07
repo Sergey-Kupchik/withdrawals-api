@@ -24,8 +24,8 @@ export class PostsQueryRepository {
     // to-do make a real call for getting real data about likes
     const postOutput: IAllPostsOutput = {
       pagesCount: params.getPageCount(totalCount),
-      page: params.pageNumber,
-      pageSize: params.pageSize,
+      page: +params.pageNumber,
+      pageSize: +params.pageSize,
       totalCount,
       items: items.map((p) => ({
         id: p._id,
@@ -95,8 +95,8 @@ export class PostsQueryRepository {
 
     const postOutput: IAllPostsOutput = {
       pagesCount: params.getPageCount(totalCount),
-      page: params.pageNumber,
-      pageSize: params.pageSize,
+      page: +params.pageNumber,
+      pageSize: +params.pageSize,
       totalCount,
       items: items.map((p) => ({
         id: p._id,

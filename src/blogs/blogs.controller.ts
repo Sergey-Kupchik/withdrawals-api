@@ -59,6 +59,8 @@ export class BlogsController {
     @Param('blogId') blogId: string,
     @Body() createPostNoBlogIdDto: CreatePostNoBlogIdDto,
   ): Promise<IExtendedPost> {
+    const blog = await this.blogsQueryRepository.findById(blogId);
+    if (!blog) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     return this.postsService.create({ ...createPostNoBlogIdDto, blogId });
   }
   @Get(':id')

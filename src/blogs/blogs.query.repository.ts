@@ -19,8 +19,8 @@ export class BlogsQueryRepository {
       .limit(params.pageSize);
     const BlogsOutput: IAllBlogsOutput = {
       pagesCount: params.getPageCount(totalCount),
-      page: params.pageNumber,
-      pageSize: params.pageSize,
+      page: +params.pageNumber,
+      pageSize: +params.pageSize,
       totalCount,
       items: items.map((b) => ({
         id: b._id,
