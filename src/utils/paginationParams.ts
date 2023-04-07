@@ -42,6 +42,38 @@ export class PaginationParams {
   getPageCount(totalCount: number): number {
     return Math.ceil(totalCount / this.pageSize);
   }
+  filterByLoginOrEmail() {
+    let param;
+    if (this.searchLoginTerm && this.searchEmailTerm) {
+      param = {
+        $or: [
+          {
+            'accountData.login': {
+              $regex: this.searchLoginTerm,
+              $options: 'i',
+            },
+          },
+          {
+            'accountData.email': {
+              $regex: this.searchEmailTerm,
+              $options: 'i',
+            },
+          },
+        ],
+      };
+    } else if (this.searchLoginTerm && !this.searchEmailTerm) {
+      param = {
+        'accountData.login': { $regex: this.searchLoginTerm, $options: 'i' },
+      };
+    } else if (!this.searchLoginTerm && this.searchEmailTerm) {
+      param = {
+        'accountData.email': { $regex: this.searchEmailTerm, $options: 'i' },
+      };
+    } else {
+      param = {};
+    }
+    return param;
+  }
 }
 
 export enum SortDirectionEnum {

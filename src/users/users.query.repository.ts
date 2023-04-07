@@ -10,15 +10,13 @@ export class UsersQueryRepository {
 
   async findAll(filterParamsDto: FilterParamsDto): Promise<IAllUsersOutput> {
     const params = new PaginationParams(filterParamsDto);
+    const filter = params.filterByLoginOrEmail();
     const nameByStr = `accountData.${params.sortBy}`;
-    const totalCount: number = await this.userModel.find().count();
+    const totalCount: number = await this.userModel.find(filter).count();
     const items = await this.userModel
-      .find(
-        {},
-        {
-          projection: { _id: 0, hash: 0 },
-        },
-      )
+      .find(filter, {
+        projection: { _id: 0, hash: 0 },
+      })
       .sort({ [nameByStr]: params.sortDirectionNumber })
       .skip(params.skipItems)
       .limit(params.pageSize);
