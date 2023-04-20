@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
 import {
   CreateCommentDto,
+  CreateCommentExtended,
   CreateCommentUserInfoDto,
 } from '../comments/dto/create-comment.dto';
 
@@ -24,16 +25,16 @@ export class Comment {
   content: string;
 
   static async createCustomComment(
-    createCommentDto: CreateCommentDto,
+    createCommentExtended: CreateCommentExtended,
     userInfoDto: CreateCommentUserInfoDto,
     Model: CommentModelType,
   ): Promise<CommentDocument> {
     const commentDto = {
-      content: createCommentDto.content,
+      content: createCommentExtended.content,
       userId: userInfoDto.userId,
       userLogin: userInfoDto.userLogin,
       createdAt: new Date().toISOString(),
-      postId: createCommentDto.postId,
+      postId: createCommentExtended.postId,
     };
     return new Model(commentDto);
   }

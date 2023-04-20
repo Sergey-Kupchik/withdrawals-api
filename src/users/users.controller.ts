@@ -15,6 +15,7 @@ import { UsersService } from './users.service';
 import { IAllUsersOutput, IUserOutput } from './interfaces/user.interface';
 import { UsersQueryRepository } from './users.query.repository';
 import { FilterParamsDto } from 'src/utils/paginationParams';
+import { ParseObjectIdPipe } from '../validation/parse-objectId.pipe';
 
 @Controller(`users`)
 export class UsersController {
@@ -37,7 +38,7 @@ export class UsersController {
 
   @HttpCode(204)
   @Delete(':id')
-  async deleteUser(@Param('id') id: string) {
+  async deleteUser(@Param('id', ParseObjectIdPipe) id: string) {
     const deleted = await this.usersQueryRepository.deleteById(id);
     if (!deleted) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     return;

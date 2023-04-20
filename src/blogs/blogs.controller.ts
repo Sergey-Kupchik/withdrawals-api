@@ -7,6 +7,7 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  ParseFloatPipe,
   Post,
   Put,
   Query,
@@ -19,6 +20,7 @@ import { BlogsQueryRepository } from './blogs.query.repository';
 import { BlogsService } from './blogs.service';
 import { CreateBlogDto, CreatePostNoBlogIdDto } from './dto/blod.dto';
 import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
+import { ParseObjectIdPipe } from '../validation/parse-objectId.pipe';
 
 @Controller(`blogs`)
 export class BlogsController {
@@ -38,7 +40,7 @@ export class BlogsController {
 
   @Get(':blogId/posts')
   async getPosts(
-    @Param('blogId') blogId: string,
+    @Param('blogId', ParseObjectIdPipe) blogId: string,
     @Query() filterParamsDto: FilterParamsDto,
   ) {
     const blog = await this.blogsQueryRepository.findById(blogId);
@@ -56,7 +58,7 @@ export class BlogsController {
 
   @Post(':blogId/posts')
   async createPost(
-    @Param('blogId') blogId: string,
+    @Param('blogId', ParseObjectIdPipe) blogId: string,
     @Body() createPostNoBlogIdDto: CreatePostNoBlogIdDto,
   ): Promise<IExtendedPost> {
     const blog = await this.blogsQueryRepository.findById(blogId);
@@ -64,7 +66,7 @@ export class BlogsController {
     return this.postsService.create({ ...createPostNoBlogIdDto, blogId });
   }
   @Get(':id')
-  async getById(@Param('id') id: string) {
+  async getById(@Param('id', ParseObjectIdPipe) id: string) {
     const blog = await this.blogsQueryRepository.findById(id);
     if (!blog) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     return blog;
@@ -72,7 +74,10 @@ export class BlogsController {
 
   @HttpCode(204)
   @Put(':id')
-  async update(@Param('id') id: string, @Body() createBlogDto: CreateBlogDto) {
+  async update(
+    @Param('id', ParseObjectIdPipe) id: string,
+    @Body() createBlogDto: CreateBlogDto,
+  ) {
     const isUpdated = await this.blogsService.update(createBlogDto, id);
     if (!isUpdated) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     return;
@@ -80,7 +85,7 @@ export class BlogsController {
 
   @HttpCode(204)
   @Delete(':id')
-  async deleteUser(@Param('id') id: string) {
+  async deleteUser(@Param('id', ParseObjectIdPipe) id: string) {
     const deleted = await this.blogsQueryRepository.deleteById(id);
     if (!deleted) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     return;

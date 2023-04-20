@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterParamsDto, PaginationParams } from 'src/utils/paginationParams';
-import { LikeStatusEnum } from '../posts/interfaces/post.interface';
+import {
+  IExtendedPost,
+  LikeStatusEnum,
+} from '../posts/interfaces/post.interface';
 import { Comment, CommentModelType } from '../schemas/comment.schema';
-import { IAllCommentsOutput } from './interfaces/comment.interface';
+import {
+  IAllCommentsOutput,
+  IExtendedComment,
+} from './interfaces/comment.interface';
 
 @Injectable()
 export class CommentsQueryRepository {
@@ -47,5 +53,26 @@ export class CommentsQueryRepository {
       })),
     };
     return postsOutput;
+  }
+  async findById(id: string): Promise<IExtendedComment | null> {
+    const result = await this.commentModel
+      .findOne({ _id: id }, '  -__v')
+      .lean();
+    if (result) {
+      const comment: IExtendedComment = {
+        id: result._id,
+        content: result.content,
+        commentatorInfo: { userLogin: result.userLogin, userId: result.userId },
+        createdAt: result.createdAt,
+        likesInfo: {
+          likesCount: 12222222222222222,
+          dislikesCount: 1222222222222222,
+          myStatus: LikeStatusEnum.None,
+        },
+      };
+      return comment;
+    } else {
+      return null;
+    }
   }
 }

@@ -17,11 +17,16 @@ import { CreatePostDto } from './dto/post.dto';
 import { IAllPostsOutput } from './interfaces/post.interface';
 import { PostsQueryRepository } from './posts.query.repository';
 import { PostsService } from './posts.service';
+import { ParseObjectIdPipe } from '../validation/parse-objectId.pipe';
+import { CreateCommentDto } from '../comments/dto/create-comment.dto';
+import { CommentsService } from '../comments/comments.service';
+import { IExtendedComment } from '../comments/interfaces/comment.interface';
 
 @Controller(`posts`)
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
+    private readonly commentsService: CommentsService,
     private readonly commentsQueryRepository: CommentsQueryRepository,
     private readonly postsQueryRepository: PostsQueryRepository,
   ) {}
@@ -36,9 +41,9 @@ export class PostsController {
   async create(@Body() createPostDto: CreatePostDto) {
     return await this.postsService.create(createPostDto);
   }
-  @Post(':id/comments')
+  @Get(':id/comments')
   async getComments(
-    @Param('id') id: string,
+    @Param('id', ParseObjectIdPipe) id: string,
     @Query() filterParamsDto: FilterParamsDto,
   ) {
     const comments = await this.commentsQueryRepository.findAllByPostId(
@@ -48,6 +53,22 @@ export class PostsController {
     if (!comments) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     return comments;
   }
+  @Post(':id/comments')
+  async createComment(
+    @Param('id', ParseObjectIdPipe) id: string,
+    @Body() createCommentDto: CreateCommentDto,
+  ) {
+    const comment = await this.commentsService.create({
+      content: createCommentDto.content,
+      postId: id,
+    });
+    if (!comment) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
+    const extendedComment = await this.commentsQueryRepository.findById(
+      comment.id,
+    );
+    return extendedComment;
+  }
+
   @Get(':id')
   async getById(@Param('id') id: string) {
     const post = await this.postsQueryRepository.findById(id);

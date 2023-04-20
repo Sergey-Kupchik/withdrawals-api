@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model } from 'mongoose';
+import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
@@ -61,7 +61,7 @@ export class User {
         email: createUserDto.email.toLowerCase(),
         hash: await bcrypt.hash(createUserDto.password, 10),
         createdAt: new Date().toISOString(),
-        id: uuidv4(),
+        id: new Types.ObjectId(),
       },
       emailConfirmation: {
         confirmationCode: uuidv4(),
