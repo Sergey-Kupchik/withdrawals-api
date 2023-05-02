@@ -7,7 +7,6 @@ import {
   HttpException,
   HttpStatus,
   Param,
-  ParseFloatPipe,
   Post,
   Put,
   Query,
@@ -18,7 +17,11 @@ import { PostsService } from 'src/posts/posts.service';
 import { FilterParamsDto } from 'src/utils/paginationParams';
 import { BlogsQueryRepository } from './blogs.query.repository';
 import { BlogsService } from './blogs.service';
-import { CreateBlogDto, CreatePostNoBlogIdDto } from './dto/blod.dto';
+import {
+  CreateBlogDto,
+  CreatePostNoBlogIdDto,
+  UserIdDTO,
+} from './dto/blod.dto';
 import { IAllBlogsOutput, IBlog } from './interfaces/blog.interface';
 import { ParseObjectIdPipe } from '../validation/parse-objectId.pipe';
 
@@ -40,13 +43,14 @@ export class BlogsController {
 
   @Get(':blogId/posts')
   async getPosts(
+    @Body() userIdDTO: UserIdDTO,
     @Param('blogId', ParseObjectIdPipe) blogId: string,
     @Query() filterParamsDto: FilterParamsDto,
   ) {
     const blog = await this.blogsQueryRepository.findById(blogId);
     if (!blog) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     return await this.postsQueryRepository.findByBlogId(
-      blogId,
+      { blogId, userId: userIdDTO.userId },
       filterParamsDto,
     );
   }

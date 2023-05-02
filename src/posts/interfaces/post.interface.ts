@@ -1,4 +1,5 @@
 import { IUserOutput } from '../../users/interfaces/user.interface';
+import { LikeStatusRepoEnum } from '../../likes/interfaces/like.interface';
 
 export interface IPost {
   id: string;
@@ -41,21 +42,11 @@ export interface IPost {
 export interface ILikesInfo {
   likesCount: number;
   dislikesCount: number;
-  myStatus: LikeStatusEnum;
+  myStatus: LikeStatusRepoEnum;
   newestLikes: INewestLikes[];
 }
 export interface INewestLikes {
   addedAt: string;
   userId: string;
   login: string;
-}
-
-export enum LikeStatusEnum {
-  None = 'None',
-  Like = 'Like',
-  Dislike = 'Dislike',
-}
-export enum LikeDislikeEnum {
-  Like = 'Like',
-  Dislike = 'Dislike',
 }

@@ -4,6 +4,9 @@ export class CreateCommentDto {
   @IsString()
   @Length(20, 300)
   content: string;
+
+  @IsString()
+  userId: string;
 }
 
 export class CreateCommentExtended {

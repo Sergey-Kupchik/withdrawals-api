@@ -18,14 +18,16 @@ export class CommentsService {
   ) {}
   async create(
     createCommentExtended: CreateCommentExtended,
+    userId: string,
   ): Promise<IComment | null> {
-    const post = await this.postsQueryRepository.findById(
-      createCommentExtended.postId,
-    );
+    const post = await this.postsQueryRepository.findById({
+      postId: createCommentExtended.postId,
+      userId: userId,
+    });
     if (!post) return null;
     const comment = await this.commentModel.createCustomComment(
-      createCommentExtended,
-      { userId: 'userId', userLogin: 'userLogin' },
+      { ...createCommentExtended, userId: userId },
+      { userId: userId, userLogin: 'userLogin TBO' },
       this.commentModel,
     );
     const savedComment = await this.commentsRepository.save(comment);
@@ -38,7 +40,15 @@ export class CommentsService {
       content: savedComment.content,
     };
   }
-  async findById(id: string): Promise<IComment | null> {
-    return this.commentModel.findById(id);
+
+  async updateById(dto: {
+    commentId: string;
+    content: string;
+  }): Promise<boolean> {
+    const comment = await this.commentModel.findById(dto.commentId);
+    if (!comment) return false;
+    await comment.updateComment(dto.content);
+    await this.commentsRepository.save(comment);
+    return true;
   }
 }

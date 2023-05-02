@@ -38,6 +38,10 @@ export class Comment {
     };
     return new Model(commentDto);
   }
+
+  async updateComment(content: string) {
+    this.content = content;
+  }
 }
 
 type CommentModelStaticType = {
@@ -54,6 +58,14 @@ export type CommentDocument = HydratedDocument<Comment>;
 
 export type CommentModelType = Model<CommentDocument> & CommentModelStaticType;
 
+type CommentModelMethodsType = {
+  updateComment: (content: string) => void;
+};
+
 CommentSchema.statics = {
   createCustomComment: Comment.createCustomComment,
-} as CommentModelStaticType;
+} as unknown as CommentModelStaticType;
+
+CommentSchema.methods = {
+  updateComment: Comment.prototype.updateComment,
+} as CommentModelMethodsType;

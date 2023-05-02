@@ -2,46 +2,38 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterParamsDto, PaginationParams } from 'src/utils/paginationParams';
 import { Post, PostModelType } from '../schemas/post.schema';
-
-import {
-  IAllPostsOutput,
-  IExtendedPost,
-  LikeStatusEnum,
-} from './interfaces/post.interface';
+import { IAllPostsOutput, IExtendedPost } from './interfaces/post.interface';
+import { LikesQueryRepository } from '../likes/likes.query.repository';
 
 @Injectable()
 export class PostsQueryRepository {
-  constructor(@InjectModel(Post.name) private postModel: PostModelType) {}
+  constructor(
+    @InjectModel(Post.name) private postModel: PostModelType,
+    private readonly likesQueryRepository: LikesQueryRepository,
+  ) {}
 
-  async findAll(filterDto: FilterParamsDto): Promise<IAllPostsOutput> {
+  async findAll(
+    userId: string,
+    filterDto: FilterParamsDto,
+  ): Promise<IAllPostsOutput> {
     const params = new PaginationParams(filterDto);
     const totalCount: number = await this.postModel.find().count();
-    const items = await this.postModel
+    const posts = await this.postModel
       .find()
       .sort({ [params.sortBy]: params.sortDirectionNumber })
       .skip(params.skipItems)
       .limit(params.pageSize);
-    // to-do make a real call for getting real data about likes
+    const extendedPosts = await Promise.all(
+      posts.map(
+        async (p) => await this.findById({ postId: p.id, userId: userId }),
+      ),
+    );
     const postOutput: IAllPostsOutput = {
       pagesCount: params.getPageCount(totalCount),
       page: +params.pageNumber,
       pageSize: +params.pageSize,
       totalCount,
-      items: items.map((p) => ({
-        id: p._id,
-        title: p.title,
-        shortDescription: p.shortDescription,
-        content: p.content,
-        blogId: p.blogId,
-        blogName: p.blogName,
-        createdAt: p.createdAt,
-        extendedLikesInfo: {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: LikeStatusEnum.None,
-          newestLikes: [],
-        },
-      })),
+      items: extendedPosts,
     };
     return postOutput;
   }
@@ -56,63 +48,66 @@ export class PostsQueryRepository {
     const resultDoc = await this.postModel.deleteMany();
     return resultDoc.acknowledged;
   }
-  async findById(id: string): Promise<IExtendedPost | null> {
-    const result = await this.postModel.findOne({ _id: id }, '  -__v').lean();
-    if (result) {
-      const post: IExtendedPost = {
-        id: result._id,
-        title: result.title,
-        shortDescription: result.shortDescription,
-        content: result.content,
-        blogId: result.blogId,
-        blogName: result.blogName,
-        createdAt: result.createdAt,
+  async findById(dto: {
+    userId: string;
+    postId: string;
+  }): Promise<IExtendedPost | null> {
+    const post = await this.postModel
+      .findOne({ _id: dto.postId }, '  -__v')
+      .lean();
+    if (!post) return null;
+    const { likesCount, dislikesCount } =
+      await this.likesQueryRepository.getLikesCount4Post(dto.postId);
+    const newestLikes = await this.likesQueryRepository.getNewestLikes4Post(
+      dto.postId,
+    );
+    const userLikestStatus =
+      await this.likesQueryRepository.getPostLikeStatusByUserId(dto);
+    if (post) {
+      return {
+        id: post._id,
+        title: post.title,
+        shortDescription: post.shortDescription,
+        content: post.content,
+        blogId: post.blogId,
+        blogName: post.blogName,
+        createdAt: post.createdAt,
         extendedLikesInfo: {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: LikeStatusEnum.None,
-          newestLikes: [],
+          likesCount,
+          dislikesCount,
+          myStatus: userLikestStatus,
+          newestLikes,
         },
       };
-      return post;
     } else {
       return null;
     }
   }
 
   async findByBlogId(
-    blogId: string,
+    dto: { blogId: string; userId: string },
     filterDto: FilterParamsDto,
   ): Promise<IAllPostsOutput | null> {
     const params = new PaginationParams(filterDto);
-    const filter = { blogId: blogId };
+    const filter = { blogId: dto.blogId };
     const totalCount: number = await this.postModel.find(filter).count();
     const items = await this.postModel
       .find(filter)
       .sort({ [params.sortBy]: params.sortDirectionNumber })
       .skip(params.skipItems)
       .limit(params.pageSize);
+    const extendedPosts = await Promise.all(
+      items.map(
+        async (p) => await this.findById({ postId: p.id, userId: dto.userId }),
+      ),
+    );
 
     const postOutput: IAllPostsOutput = {
       pagesCount: params.getPageCount(totalCount),
       page: +params.pageNumber,
       pageSize: +params.pageSize,
       totalCount,
-      items: items.map((p) => ({
-        id: p._id,
-        title: p.title,
-        shortDescription: p.shortDescription,
-        content: p.content,
-        blogId: p.blogId,
-        blogName: p.blogName,
-        createdAt: p.createdAt,
-        extendedLikesInfo: {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: LikeStatusEnum.None,
-          newestLikes: [],
-        },
-      })),
+      items: extendedPosts as IExtendedPost[],
     };
     return postOutput;
   }

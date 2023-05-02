@@ -24,6 +24,10 @@ import { CommentsQueryRepository } from './comments/comments.query.repository';
 import { PostsRepository } from './posts/posts.repository';
 import { Post, PostSchema } from './schemas/post.schema';
 import { PostsQueryRepository } from './posts/posts.query.repository';
+import { Like, LikeSchema } from './schemas/like.schema';
+import { LikeService } from './likes/likes.service';
+import { LikesRepository } from './likes/likes.repository';
+import { LikesQueryRepository } from './likes/likes.query.repository';
 
 @Module({
   imports: [
@@ -39,6 +43,7 @@ import { PostsQueryRepository } from './posts/posts.query.repository';
     MongooseModule.forFeature([{ name: Blog.name, schema: BlogSchema }]),
     MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
     MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
+    MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
   ],
   controllers: [
     AppController,
@@ -62,6 +67,9 @@ import { PostsQueryRepository } from './posts/posts.query.repository';
     CommentsQueryRepository,
     PostsRepository,
     PostsQueryRepository,
+    LikeService,
+    LikesRepository,
+    LikesQueryRepository,
   ],
 })
 export class AppModule {}

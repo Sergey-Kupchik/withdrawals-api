@@ -1,7 +1,4 @@
-import {
-  ILikesInfo,
-  LikeStatusEnum,
-} from '../../posts/interfaces/post.interface';
+import { LikeStatusRepoEnum } from '../../likes/interfaces/like.interface';
 
 export interface IComment {
   id: string;
@@ -31,5 +28,5 @@ export interface IAllCommentsOutput {
 interface ILikesInfoNoNewestLikes {
   likesCount: number;
   dislikesCount: number;
-  myStatus: LikeStatusEnum;
+  myStatus: LikeStatusRepoEnum;
 }

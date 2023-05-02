@@ -19,4 +19,11 @@ export class CreatePostNoBlogIdDto {
   title: string;
   shortDescription: string;
   content: string;
+  @IsString()
+  userId: string;
+}
+
+export class UserIdDTO {
+  @IsString()
+  userId: string;
 }

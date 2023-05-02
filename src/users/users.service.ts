@@ -5,11 +5,13 @@ import { User, UserModelType } from '../schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { IUserOutput } from './interfaces/user.interface';
 import { UsersRepository } from './users.repository';
+import { LikeService } from '../likes/likes.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
+    private readonly likeService: LikeService,
     @InjectModel(User.name) private userModel: UserModelType,
   ) {}
   async create(createUserDto: CreateUserDto): Promise<IUserOutput> {
@@ -18,6 +20,7 @@ export class UsersService {
       this.userModel,
     );
     const savedUser = await this.usersRepository.save(user);
+    await this.likeService.create(savedUser.accountData.id);
     return {
       id: savedUser.accountData.id,
       login: savedUser.accountData.login,

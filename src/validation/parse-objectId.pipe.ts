@@ -1,9 +1,4 @@
-import {
-  PipeTransform,
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, PipeTransform } from '@nestjs/common';
 import { Types } from 'mongoose';
 
 @Injectable()

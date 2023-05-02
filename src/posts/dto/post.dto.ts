@@ -17,4 +17,8 @@ export class CreatePostDto {
   // @IsMongoIdObject({ message: 'blogId is not MongoId' })
   @IsString()
   blogId: string;
+
+  //remove then I do headers in http
+  @IsString()
+  userId: string;
 }
