@@ -6,6 +6,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { IUserOutput } from './interfaces/user.interface';
 import { UsersRepository } from './users.repository';
 import { LikeService } from '../likes/likes.service';
+import { validateEmail } from '../utils/utils';
+import { ILoginDto } from '../auth/dto/auth.dto';
 
 @Injectable()
 export class UsersService {
@@ -36,5 +38,18 @@ export class UsersService {
   async _comparePassword(password: string, hash: string): Promise<boolean> {
     const isMatch = await bcrypt.compare(password, hash);
     return isMatch;
+  }
+  async checkCredentials(dto: ILoginDto): Promise<User | null> {
+    const user = validateEmail(dto.loginOrEmail)
+      ? await this.usersRepository.findByEmail(dto.loginOrEmail)
+      : await this.usersRepository.findByLogin(dto.loginOrEmail);
+    if (user) {
+      const isPasswordValid = await this._comparePassword(
+        dto.password,
+        user.accountData.hash,
+      );
+      if (isPasswordValid) return user;
+    }
+    return null;
   }
 }

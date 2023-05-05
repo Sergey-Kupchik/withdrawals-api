@@ -28,6 +28,10 @@ import { Like, LikeSchema } from './schemas/like.schema';
 import { LikeService } from './likes/likes.service';
 import { LikesRepository } from './likes/likes.repository';
 import { LikesQueryRepository } from './likes/likes.query.repository';
+import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { jwtConstants } from './auth/constants';
 
 @Module({
   imports: [
@@ -44,6 +48,11 @@ import { LikesQueryRepository } from './likes/likes.query.repository';
     MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
     MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
     MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
+    JwtModule.register({
+      global: true,
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '6000s' },
+    }),
   ],
   controllers: [
     AppController,
@@ -52,6 +61,7 @@ import { LikesQueryRepository } from './likes/likes.query.repository';
     BlogsController,
     PostsController,
     CommentsController,
+    AuthController,
   ],
   providers: [
     AppService,
@@ -70,6 +80,7 @@ import { LikesQueryRepository } from './likes/likes.query.repository';
     LikeService,
     LikesRepository,
     LikesQueryRepository,
+    AuthService,
   ],
 })
 export class AppModule {}
