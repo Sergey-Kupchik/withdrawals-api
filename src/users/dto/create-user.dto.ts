@@ -12,3 +12,9 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 }
+
+export interface IEmailConfirmation {
+  confirmationCode: string;
+  expirationDate: Date;
+  isConfirmed: boolean;
+}

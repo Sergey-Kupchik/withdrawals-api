@@ -8,6 +8,8 @@ import { UsersRepository } from './users.repository';
 import { LikeService } from '../likes/likes.service';
 import { validateEmail } from '../utils/utils';
 import { ILoginDto } from '../auth/dto/auth.dto';
+import { add } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
@@ -39,6 +41,10 @@ export class UsersService {
     const isMatch = await bcrypt.compare(password, hash);
     return isMatch;
   }
+  async confirmUser(userId: string): Promise<boolean> {
+    const idConfirmed: boolean = await this.usersRepository.confirmUser(userId);
+    return idConfirmed;
+  }
   async checkCredentials(dto: ILoginDto): Promise<User | null> {
     const user = validateEmail(dto.loginOrEmail)
       ? await this.usersRepository.findByEmail(dto.loginOrEmail)
@@ -51,5 +57,28 @@ export class UsersService {
       if (isPasswordValid) return user;
     }
     return null;
+  }
+  async updateConfirmationCode(id: string): Promise<string | null> {
+    const emailConfirmation = {
+      confirmationCode: uuidv4(),
+      expirationDate: add(new Date(), {
+        hours: 5,
+      }),
+      isConfirmed: false,
+    };
+    const idUpdated: boolean =
+      await this.usersRepository.updateConfirmationCode(id, emailConfirmation);
+    if (idUpdated) return emailConfirmation.confirmationCode;
+    return null;
+  }
+  async resetPassword(email: string, recoverCode: string): Promise<boolean> {
+    const user = await this.usersRepository.findByEmail(email);
+    if (!user) return false;
+    const hash = await this._hashPassword(recoverCode);
+    await this.usersRepository.addResetPasswordHash({
+      userId: user.accountData.id,
+      hash,
+    });
+    return true;
   }
 }

@@ -34,7 +34,7 @@ export class EmailConfirmation {
   expirationDate: Date;
 
   @Prop({ default: false })
-  isConfirmed: string;
+  isConfirmed: boolean;
 }
 
 @Schema()
