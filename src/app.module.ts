@@ -32,6 +32,7 @@ import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './auth/constants';
+import { RegistrationService } from './registration/registration.service';
 
 @Module({
   imports: [
@@ -51,7 +52,7 @@ import { jwtConstants } from './auth/constants';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '6000s' },
+      signOptions: { expiresIn: '6000000s' },
     }),
   ],
   controllers: [
@@ -81,6 +82,7 @@ import { jwtConstants } from './auth/constants';
     LikesRepository,
     LikesQueryRepository,
     AuthService,
+    RegistrationService,
   ],
 })
 export class AppModule {}

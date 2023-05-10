@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Comment, CommentModelType } from '../schemas/comment.schema';
-import {
-  CreateCommentDto,
-  CreateCommentExtended,
-} from './dto/create-comment.dto';
+import { CreateCommentExtended } from './dto/create-comment.dto';
 import { CommentsRepository } from './comments.repository';
 import { IComment } from './interfaces/comment.interface';
 import { PostsQueryRepository } from '../posts/posts.query.repository';
+import { UsersQueryRepository } from '../users/users.query.repository';
 
 @Injectable()
 export class CommentsService {
@@ -15,6 +13,7 @@ export class CommentsService {
     @InjectModel(Comment.name) private commentModel: CommentModelType,
     private readonly commentsRepository: CommentsRepository,
     private readonly postsQueryRepository: PostsQueryRepository,
+    private readonly usersQueryRepository: UsersQueryRepository,
   ) {}
   async create(
     createCommentExtended: CreateCommentExtended,
@@ -25,9 +24,11 @@ export class CommentsService {
       userId: userId,
     });
     if (!post) return null;
+    const { login } = await this.usersQueryRepository.findById(userId);
+    if (!login) return null;
     const comment = await this.commentModel.createCustomComment(
-      { ...createCommentExtended, userId: userId },
-      { userId: userId, userLogin: 'userLogin TBO' },
+      { ...createCommentExtended },
+      { userId: userId, userLogin: login },
       this.commentModel,
     );
     const savedComment = await this.commentsRepository.save(comment);

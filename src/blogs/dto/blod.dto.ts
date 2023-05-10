@@ -16,14 +16,15 @@ export class CreateBlogDto {
 }
 
 export class CreatePostNoBlogIdDto {
+  @IsString()
+  @MaxLength(30)
   title: string;
-  shortDescription: string;
-  content: string;
-  @IsString()
-  userId: string;
-}
 
-export class UserIdDTO {
   @IsString()
-  userId: string;
+  @MaxLength(100)
+  shortDescription: string;
+
+  @IsString()
+  @MaxLength(1000)
+  content: string;
 }

@@ -5,11 +5,13 @@ import {
   HttpStatus,
   Param,
   Post,
+  Request,
   Put,
   Query,
   Delete,
   HttpException,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import { CommentsQueryRepository } from 'src/comments/comments.query.repository';
 import { FilterParamsDto } from 'src/utils/paginationParams';
@@ -23,7 +25,8 @@ import { CommentsService } from '../comments/comments.service';
 import { IExtendedComment } from '../comments/interfaces/comment.interface';
 import { CreateLikeDto } from '../likes/dto/create-like-dto';
 import { LikeService } from '../likes/likes.service';
-import { UserIdDTO } from '../blogs/dto/blod.dto';
+import { AuthGuard } from '../auth/auth.guard';
+import { UserIdFromJwt } from '../auth/dto/current-userId.decorator';
 
 @Controller(`posts`)
 export class PostsController {
@@ -35,55 +38,64 @@ export class PostsController {
     private readonly likeService: LikeService,
   ) {}
 
+  @UseGuards(AuthGuard)
   @Get()
   async getPosts(
-    @Body() userIdDTO: UserIdDTO,
+    @UserIdFromJwt('userId', ParseObjectIdPipe) userId: string,
     @Query() filterParamsDto: FilterParamsDto,
   ): Promise<IAllPostsOutput> {
-    return this.postsQueryRepository.findAll(userIdDTO.userId, filterParamsDto);
+    return this.postsQueryRepository.findAll(userId, filterParamsDto);
   }
   @Post()
   async create(@Body() createPostDto: CreatePostDto) {
     return await this.postsService.create(createPostDto);
   }
+
+  @UseGuards(AuthGuard)
   @Get(':id/comments')
   async getComments(
     @Param('id', ParseObjectIdPipe) id: string,
-    @Body() userIdDTO: UserIdDTO,
+    @UserIdFromJwt('userId', ParseObjectIdPipe) userId: string,
     @Query() filterParamsDto: FilterParamsDto,
   ) {
     const comments = await this.commentsQueryRepository.findAllByPostId(
       filterParamsDto,
       id,
-      userIdDTO.userId,
+      userId,
     );
     if (!comments) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     return comments;
   }
 
+  @UseGuards(AuthGuard)
   @Post(':id/comments')
   async createComment(
     @Param('id', ParseObjectIdPipe) id: string,
     @Body() createCommentDto: CreateCommentDto,
     @Query() filterParamsDto: FilterParamsDto,
+    @UserIdFromJwt('userId', ParseObjectIdPipe) userId: string,
   ) {
     const comment = await this.commentsService.create(
       { content: createCommentDto.content, postId: id },
-      createCommentDto.userId,
+      userId,
     );
     if (!comment) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
-    const extendedComment = await this.commentsQueryRepository.findById(
-      comment.id,
-      createCommentDto.userId,
-    );
+    const extendedComment = await this.commentsQueryRepository.findById({
+      commentId: comment.id,
+      userId,
+    });
     return extendedComment;
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
-  async getById(@Param('id') id: string, @Body() userIdDTO: UserIdDTO) {
+  async getById(
+    @Param('id') id: string,
+    @UserIdFromJwt('userId', ParseObjectIdPipe) userId: string,
+  ) {
     const post = await this.postsQueryRepository.findById({
       postId: id,
-      userId: userIdDTO.userId,
+      userId: userId,
     });
     if (!post) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     return post;
@@ -105,9 +117,11 @@ export class PostsController {
     return;
   }
 
+  @UseGuards(AuthGuard)
   @HttpCode(204)
   @Put(':id/like-status')
   async like(
+    @UserIdFromJwt('userId', ParseObjectIdPipe) userId: string,
     @Param('id', ParseObjectIdPipe) id: string,
     @Body() dto: CreateLikeDto,
   ) {
@@ -116,7 +130,7 @@ export class PostsController {
     await this.likeService.likeDislikePost({
       postId: id,
       likeStatus: dto.likeStatus,
-      userId: dto.userId,
+      userId: userId,
     });
     return;
   }

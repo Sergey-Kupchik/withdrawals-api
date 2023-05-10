@@ -6,9 +6,6 @@ export class CreateLikeDto {
   @IsString()
   @IsLikeStatus({ message: 'likeStatus has incorrect values' })
   likeStatus: LikeStatusRepoEnum;
-
-  @IsString()
-  userId: string;
 }
 
 // @injectable()

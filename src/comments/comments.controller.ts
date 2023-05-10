@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Param,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { ParseObjectIdPipe } from '../validation/parse-objectId.pipe';
@@ -17,7 +18,8 @@ import { CommentsQueryRepository } from './comments.query.repository';
 import { Like } from '../schemas/like.schema';
 import { LikeService } from '../likes/likes.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { UserIdDTO } from '../blogs/dto/blod.dto';
+import { AuthGuard } from '../auth/auth.guard';
+import { UserIdFromJwt } from '../auth/dto/current-userId.decorator';
 
 @Controller(`comments`)
 export class CommentsController {
@@ -27,15 +29,16 @@ export class CommentsController {
     private readonly commentsQueryRepository: CommentsQueryRepository,
   ) {}
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   async getById(
     @Param('id', ParseObjectIdPipe) id: string,
-    @Body() userIdDTO: UserIdDTO,
+    @UserIdFromJwt('userId', ParseObjectIdPipe) userId: string,
   ) {
-    const comment = await this.commentsQueryRepository.findById(
-      id,
-      userIdDTO.userId,
-    );
+    const comment = await this.commentsQueryRepository.findById({
+      commentId: id,
+      userId,
+    });
     if (!comment) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     return comment;
   }
@@ -48,18 +51,20 @@ export class CommentsController {
     return;
   }
 
+  @UseGuards(AuthGuard)
   @HttpCode(204)
   @Put(':id/like-status')
   async likeComment(
     @Param('id', ParseObjectIdPipe) id: string,
     @Body() createLikeDto: CreateLikeDto,
+    @UserIdFromJwt('userId', ParseObjectIdPipe) userId: string,
   ) {
     // const comment = await this.commentsQueryRepository.findById(id);
     // if (!comment) throw new HttpException('NOT FOUND', HttpStatus.NOT_FOUND);
     await this.likeService.likeDislikeComment({
       commentId: id,
       likeStatus: createLikeDto.likeStatus,
-      userId: createLikeDto.userId,
+      userId: userId,
     });
     return;
   }

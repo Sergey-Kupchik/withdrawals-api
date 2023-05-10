@@ -38,20 +38,25 @@ export class CommentsQueryRepository {
       .skip(params.skipItems)
       .limit(params.pageSize);
     const extendedPosts = await Promise.all(
-      comment.map(async (p) => await this.findById(p.id, userId)),
+      comment.map(
+        async (c) => await this.findById({ commentId: c.id, userId }),
+      ),
     );
     const postsOutput: IAllCommentsOutput = {
       pagesCount: params.getPageCount(totalCount),
       page: +params.pageNumber,
       pageSize: +params.pageSize,
       totalCount,
-      items: extendedPosts,
+      items: extendedPosts as any,
     };
     return postsOutput;
   }
-  async findById(id: string, userId: string): Promise<IExtendedComment | null> {
+  async findById(dto: {
+    commentId: string;
+    userId: string;
+  }): Promise<IExtendedComment | null> {
     const comment = await this.commentModel
-      .findOne({ _id: id }, '  -__v')
+      .findOne({ _id: dto.commentId }, '  -__v')
       .lean();
     if (comment) {
       const { likesCount, dislikesCount } =
@@ -59,9 +64,9 @@ export class CommentsQueryRepository {
       const myStatus =
         await this.likesQueryRepository.getCommentLikeStatusByUserId({
           commentId: comment._id,
-          userId: userId,
+          userId: dto.userId,
         });
-      const userInfo = await this.usersQueryRepository.findById(userId);
+      const userInfo = await this.usersQueryRepository.findById(dto.userId);
       const commentOutput: IExtendedComment = {
         id: comment._id,
         content: comment.content,
@@ -81,7 +86,6 @@ export class CommentsQueryRepository {
       return null;
     }
   }
-
   async deleteById(id: string): Promise<boolean> {
     const result = await this.commentModel.deleteOne({ _id: id });
     return result.deletedCount === 1;
