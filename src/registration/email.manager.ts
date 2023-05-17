@@ -11,7 +11,7 @@ export class EmailManager {
       '<p>To finish registration please follow the link below:' +
       `<a href=https://somesite.com/confirm-email?code=${confirmationCode}>complete registration</a>` +
       '</p>';
-    const subject = 'Confirm your email address from emailManager✔';
+    const subject = 'Confirm your email address from emailManager#2✔';
     const textMessage = 'Confirm your email address from emailManager';
     try {
       const result = await this.emailAdapter.sentEmail(
@@ -22,7 +22,7 @@ export class EmailManager {
       );
       return result;
     } catch {
-      return null;
+      throw new Error('Email was not a sent!');
     }
   }
 

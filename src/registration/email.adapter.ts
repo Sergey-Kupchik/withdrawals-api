@@ -1,43 +1,21 @@
-import nodemailer from 'nodemailer';
 import { Injectable } from '@nestjs/common';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class EmailAdapter {
-  async _addTransport() {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'kupchikrabota@gmail.com',
-        pass: 'kexizcyltqshmpsy',
-      },
-    });
-    return transporter;
-  }
-  async sentConfirmationEmail(email: string, html: string) {
-    const transporter = await this._addTransport();
-    const info = await transporter.sendMail({
-      from: '"Cool man 👻" <kupchikrabota@gmail.com>',
-      to: `${email}, ${email}`,
-      subject: 'Confirm your email address ✔',
-      text: 'Confirm your email address',
-      html: '<a href="https://www.w3schools.com">Confirm</a> ${html}',
-    });
-    return info.response;
-  }
+  constructor(private mailerService: MailerService) {}
   async sentEmail(
     email: string,
     subject: string,
-    textMessage: string,
+    text: string,
     html: string,
-  ) {
-    const transporter = await this._addTransport();
-    const info = await transporter.sendMail({
-      from: '"Cool man 👻" <kupchikrabota@gmail.com>',
-      to: `${email}, ${email}`,
-      subject: subject,
-      text: textMessage,
-      html: html,
+  ): Promise<void> {
+    await this.mailerService.sendMail({
+      to: email,
+      from: 'kupchikrabota@gmail.com',
+      subject,
+      text,
+      html,
     });
-    return info.response;
   }
 }

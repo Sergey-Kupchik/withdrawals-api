@@ -30,9 +30,12 @@ import { LikesRepository } from './likes/likes.repository';
 import { LikesQueryRepository } from './likes/likes.query.repository';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './auth/constants';
 import { RegistrationService } from './registration/registration.service';
+import { EmailManager } from './registration/email.manager';
+import { EmailAdapter } from './registration/email.adapter';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -53,6 +56,15 @@ import { RegistrationService } from './registration/registration.service';
       global: true,
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '6000000s' },
+    }),
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        auth: {
+          user: 'kupchikrabota@gmail.com',
+          pass: 'kexizcyltqshmpsy',
+        },
+      },
     }),
   ],
   controllers: [
@@ -83,6 +95,8 @@ import { RegistrationService } from './registration/registration.service';
     LikesQueryRepository,
     AuthService,
     RegistrationService,
+    EmailManager,
+    EmailAdapter,
   ],
 })
 export class AppModule {}

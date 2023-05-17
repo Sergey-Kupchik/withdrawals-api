@@ -40,6 +40,10 @@ export class AuthController {
 
   @Post('registration')
   async registration(@Body() userRegisterDto: UserRegisterDto) {
-    return this.registrationService.registrationNewUser(userRegisterDto);
+    const isEmailSent: boolean =
+      await this.registrationService.registrationNewUser(userRegisterDto);
+    if (!isEmailSent)
+      throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+    return;
   }
 }

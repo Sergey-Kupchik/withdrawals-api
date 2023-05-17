@@ -19,6 +19,10 @@ export class RegistrationService {
   ) {}
 
   async registrationNewUser(dto: CreateUserDto): Promise<boolean> {
+    const emailInstance = await this.usersRepository.findByEmail(dto.email);
+    if (emailInstance) return false;
+    const loginInstance = await this.usersRepository.findByLogin(dto.login);
+    if (loginInstance) return false;
     await this.usersService.create(dto);
     const user = await this.usersRepository.findByLogin(dto.login);
     if (!user) return false;
