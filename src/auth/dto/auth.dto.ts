@@ -1,4 +1,4 @@
-import { IsEmail, IsString, Length } from 'class-validator';
+import { IsEmail, IsString, Length, MaxLength } from 'class-validator';
 import { AuthService } from '../auth.service';
 
 export class SignInDto {
@@ -27,10 +27,44 @@ export class UserRegisterDto {
 export interface ILoginDto {
   password: string;
   loginOrEmail: string;
+  clientIp: string;
+  deviceTitle: string;
 }
 
 export interface IAuthUser {
   email: string;
   login: string;
   userId: string;
+}
+
+export interface ICheckCredentialsDto {
+  password: string;
+  loginOrEmail: string;
+}
+export interface ICreateRefreshToken {
+  userId: string;
+  clientIp: string;
+  deviceTitle: string;
+  deviceId: string;
+  lastActiveDate: string;
+}
+
+export interface IRefreshTokenInfo {
+  clientIp: string;
+  deviceTitle: string;
+  deviceId: string;
+  lastActiveDate: string;
+}
+
+export interface IGetRefreshToken {
+  userId: string;
+  clientIp: string;
+  deviceTitle: string;
+}
+
+export interface IUpdateRefreshToken {
+  userId: string;
+  clientIp: string;
+  deviceId: string;
+  lastActiveDate: string;
 }

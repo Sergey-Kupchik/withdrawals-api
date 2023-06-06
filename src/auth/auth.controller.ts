@@ -6,6 +6,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Ip,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { UsersQueryRepository } from '../users/users.query.repository';
@@ -15,6 +16,7 @@ import { AuthGuard } from './auth.guard';
 import { UserIdFromJwt } from './dto/current-userId.decorator';
 import { ParseObjectIdPipe } from '../validation/parse-objectId.pipe';
 import { RegistrationService } from '../registration/registration.service';
+import { Headers } from '@nestjs/common/decorators/http/route-params.decorator';
 
 @Controller(`auth`)
 export class AuthController {
@@ -24,8 +26,16 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  async signIn(@Body() signInDto: SignInDto) {
-    return this.authService.signIn(signInDto);
+  async signIn(
+    @Body() signInDto: SignInDto,
+    @Ip() ip,
+    @Headers('user-agent') userAgent,
+  ) {
+    return this.authService.signIn({
+      ...signInDto,
+      deviceTitle: userAgent,
+      clientIp: ip,
+    });
   }
 
   @UseGuards(AuthGuard)
@@ -44,6 +54,16 @@ export class AuthController {
       await this.registrationService.registrationNewUser(userRegisterDto);
     if (!isEmailSent)
       throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('logout')
+  async logout(@UserIdFromJwt('userId', ParseObjectIdPipe) userId: string) {
+    // const isEmailSent: boolean =
+    //   await this.registrationService.registrationNewUser(userRegisterDto);
+    // if (!isEmailSent)
+    //   throw new HttpException('BAD_REQUEST', HttpStatus.BAD_REQUEST);
     return;
   }
 }

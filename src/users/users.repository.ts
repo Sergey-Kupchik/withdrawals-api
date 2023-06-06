@@ -17,9 +17,10 @@ export class UsersRepository {
       .lean();
   }
   async findByEmail(email: string): Promise<User | null> {
-    return this.userModel
+    const user = await this.userModel
       .findOne({ 'accountData.email': email }, '-_id  -__v')
       .lean();
+    return user;
   }
   async findByConfirmationCode(code: string): Promise<User | null> {
     return this.userModel

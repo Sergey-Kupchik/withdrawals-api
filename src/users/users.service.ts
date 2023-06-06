@@ -7,9 +7,13 @@ import { IUserOutput } from './interfaces/user.interface';
 import { UsersRepository } from './users.repository';
 import { LikeService } from '../likes/likes.service';
 import { validateEmail } from '../utils/utils';
-import { ILoginDto } from '../auth/dto/auth.dto';
+import { ICheckCredentialsDto, ILoginDto } from '../auth/dto/auth.dto';
 import { add } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  RefreshTokensInfo,
+  RefreshTokensInfoModelType,
+} from '../schemas/refresh-token-info.schema';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +21,8 @@ export class UsersService {
     private readonly usersRepository: UsersRepository,
     private readonly likeService: LikeService,
     @InjectModel(User.name) private userModel: UserModelType,
+    @InjectModel(RefreshTokensInfo.name)
+    private refreshTokensInfoModel: RefreshTokensInfoModelType,
   ) {}
   async create(createUserDto: CreateUserDto): Promise<IUserOutput> {
     const user = await this.userModel.createCustomUser(
@@ -25,6 +31,10 @@ export class UsersService {
     );
     const savedUser = await this.usersRepository.save(user);
     await this.likeService.create(savedUser.accountData.id);
+    await this.refreshTokensInfoModel.createCustomItem(
+      savedUser.accountData.id,
+      this.refreshTokensInfoModel,
+    );
     return {
       id: savedUser.accountData.id,
       login: savedUser.accountData.login,
@@ -45,7 +55,7 @@ export class UsersService {
     const idConfirmed: boolean = await this.usersRepository.confirmUser(userId);
     return idConfirmed;
   }
-  async checkCredentials(dto: ILoginDto): Promise<User | null> {
+  async findByLoginOrEmail(dto: ICheckCredentialsDto): Promise<User | null> {
     const user = validateEmail(dto.loginOrEmail)
       ? await this.usersRepository.findByEmail(dto.loginOrEmail)
       : await this.usersRepository.findByLogin(dto.loginOrEmail);

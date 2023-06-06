@@ -36,6 +36,11 @@ import { RegistrationService } from './registration/registration.service';
 import { EmailManager } from './registration/email.manager';
 import { EmailAdapter } from './registration/email.adapter';
 import { MailerModule } from '@nestjs-modules/mailer';
+import {
+  RefreshTokensInfo,
+  RefreshTokensInfoSchema,
+} from './schemas/refresh-token-info.schema';
+import { AuthRepository } from './auth/auth.repository';
 
 @Module({
   imports: [
@@ -52,6 +57,9 @@ import { MailerModule } from '@nestjs-modules/mailer';
     MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
     MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
     MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
+    MongooseModule.forFeature([
+      { name: RefreshTokensInfo.name, schema: RefreshTokensInfoSchema },
+    ]),
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
@@ -97,6 +105,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     RegistrationService,
     EmailManager,
     EmailAdapter,
+    AuthRepository,
   ],
 })
 export class AppModule {}
