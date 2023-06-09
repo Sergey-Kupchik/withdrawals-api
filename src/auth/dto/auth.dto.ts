@@ -68,3 +68,8 @@ export interface IUpdateRefreshToken {
   deviceId: string;
   lastActiveDate: string;
 }
+
+export interface IDeleteRefreshTokenDto {
+  userId: string;
+  deviceId: string;
+}

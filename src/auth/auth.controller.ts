@@ -7,8 +7,9 @@ import {
   HttpException,
   HttpStatus,
   Ip,
+  Res,
 } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { Response } from 'express';
 import { UsersQueryRepository } from '../users/users.query.repository';
 import { SignInDto, UserRegisterDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
@@ -30,12 +31,19 @@ export class AuthController {
     @Body() signInDto: SignInDto,
     @Ip() ip,
     @Headers('user-agent') userAgent,
+    @Res({ passthrough: true }) response: Response,
   ) {
-    return this.authService.signIn({
+    const { accessToken, refreshToken } = await this.authService.signIn({
       ...signInDto,
       deviceTitle: userAgent,
       clientIp: ip,
     });
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+    });
+
+    return { accessToken };
   }
 
   @UseGuards(AuthGuard)

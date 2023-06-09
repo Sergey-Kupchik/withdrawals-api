@@ -5,6 +5,7 @@ import { UsersRepository } from '../users/users.repository';
 import {
   IAuthUser,
   ICreateRefreshToken,
+  IDeleteRefreshTokenDto,
   IGetRefreshToken,
   ILoginDto,
   IUpdateRefreshToken,
@@ -112,27 +113,6 @@ export class AuthService {
         lastActiveDate: issuedAt,
       });
     }
-
-    // } else {
-    //   const newTokenDto = {
-    //     userId: dto.userId,
-    //     clientIp: dto.clientIp,
-    //     deviceId: uuidv4(),
-    //     deviceTitle: dto.deviceTitle,
-    //     lastActiveDate: now,
-    //   };
-    //   const tokenInfoInstance =
-    //     await this.refreshTokensInfoModel.createCustomItem(
-    //       newTokenDto,
-    //       this.refreshTokensInfoModel,
-    //     );
-    //   await this.authRepository.save(tokenInfoInstance);
-    //   return this.jwtService.signAsync({
-    //     sub: newTokenDto.userId,
-    //     deviceId: newTokenDto.deviceId,
-    //     lastActiveDate: now,
-    //   });
-    // }
   }
 
   async _updateRefreshToken(dto: IUpdateRefreshToken): Promise<string> {
@@ -180,5 +160,9 @@ export class AuthService {
       title: t.title,
     }));
     return tokensInfoOutput;
+  }
+
+  async deleteTokenByDevicesId(dto: IDeleteRefreshTokenDto): Promise<void> {
+    await this.authRepository.deleteTokenByDevicesId(dto);
   }
 }
